@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Image, Text, TouchableOpacity, View } from "react-native";
 import avatar from "../../../../components/avatar";
 import userService from "../../../../services/UserManager";
+import { Avatar, BioText, ButtonText, CollegeName, Container, DescriptionRow, DescriptionText, DisplayName, ImageRow, Rect, Rect2, RectItems,  SubDescriptionText, TouchableButton } from "./styles";
 
 
 export function Profile() {
@@ -23,13 +23,46 @@ export function Profile() {
       }
 
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Image
-          source={avatar.getAvatar(user.photoURL)}
-          style={{width: 32, height: 32}}
-        />
-        <Text>Olá, {user.displayName}</Text>
-        <TouchableOpacity onPress={handleSignout}><Text>Sair!</Text></TouchableOpacity>
-      </View>
+      <Container>
+        <Rect>
+          <RectItems>
+            <ImageRow>
+              <Avatar
+                source={avatar.getAvatar(user.photoURL)}
+                resizeMode="contain"
+              />
+              <DisplayName>{user.displayName}</DisplayName>
+              <CollegeName>UERJ/ZO</CollegeName>
+            </ImageRow>
+            <DescriptionRow>
+              <DescriptionText>000</DescriptionText>
+              <SubDescriptionText>Kms</SubDescriptionText>
+            </DescriptionRow>
+            <DescriptionRow>
+              <DescriptionText>000</DescriptionText>
+              <SubDescriptionText>Atividades</SubDescriptionText>
+            </DescriptionRow>
+            <DescriptionRow>
+              <DescriptionText>000</DescriptionText>
+              <SubDescriptionText>Conquistas</SubDescriptionText>
+            </DescriptionRow>
+          </RectItems>
+          <BioText>"A esperança é a última que morre!"</BioText>
+        </Rect>
+        <Rect2>
+          <TouchableButton>
+            <ButtonText>Editar</ButtonText>
+          </TouchableButton>
+          <TouchableButton>
+            <ButtonText>Verificar</ButtonText>
+          </TouchableButton>
+          <TouchableButton>
+            <ButtonText>Conquistas</ButtonText>
+          </TouchableButton>
+          <TouchableButton onPress={handleSignout}>
+            <ButtonText>Sair</ButtonText>
+          </TouchableButton>
+        </Rect2>
+      </Container>
     );
   }
