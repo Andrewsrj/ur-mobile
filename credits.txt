@@ -1,0 +1,8 @@
+* logo-login
+<a href="https://www.flaticon.com/free-stickers/run" title="run stickers">Run stickers created by Stickers - Flaticon</a>
+
+* logo-signup
+<a href="https://www.flaticon.com/free-stickers/school" title="school stickers">School stickers created by Stickers - Flaticon</a>
+
+* shoes
+<a href="https://www.flaticon.com/free-stickers/sports-and-competition" title="sports and competition stickers">Sports and competition stickers created by smashingstocks - Flaticon</a>
