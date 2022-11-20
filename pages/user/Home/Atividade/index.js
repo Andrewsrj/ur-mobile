@@ -15,6 +15,7 @@ export function Atividade() {
     latitudeDelta: 0.00014,
     longitudeDelta: 0.00014
   });
+  const [statusRace, setStatusRace] = useState(false);
 
   /**
    * Troca a posição do mapa de acordo com a movimentação do usuário
@@ -24,16 +25,27 @@ export function Atividade() {
   function changeRegion(position) {
     if(position != null) {
       setCurrentRegion({
-        latitude: position.nativeEvent.coordinate.latitude,
-        longitude: position.nativeEvent.coordinate.longitude,
+        latitude: position.latitude,
+        longitude: position.longitude,
         latitudeDelta: 0.00012,
         longitudeDelta: 0.00012
       });
     }
   }
+  function startRace() {
+    if(statusRace) {
+      setStatusRace(false);
+    }
+    else {
+      setStatusRace(true);
 
+    }
+  }
 
   useEffect(() => {
+
+    
+
     Location.requestForegroundPermissionsAsync()
     .then(res => {
       if(!res.granted) {
@@ -43,7 +55,7 @@ export function Atividade() {
         // Captura a localização atual do usuário
         Location.getCurrentPositionAsync({})
         .then(res => {
-          setCurrentRegion({
+          changeRegion({
             latitude: res.coords.latitude,
             longitude: res.coords.longitude,
             latitudeDelta: 0.00012,
@@ -53,6 +65,8 @@ export function Atividade() {
         .catch(e => {
           console.log(e)
         });
+
+
       }
     })
     .catch(error => {
@@ -71,7 +85,6 @@ export function Atividade() {
           showsUserLocation
           followsUserLocation
           loadingEnabled
-          onUserLocationChange={changeRegion}
         />
     </Container>
     <Container justify='space-between' bottom='0%' background width='100%' height='40%'>
@@ -94,10 +107,17 @@ export function Atividade() {
         </MiniContainer>
 
       </MiniContainer>
-
-      <SubmitSignButton width='50%' bottom='1%'>
-        <SubmitTextSign>Iniciar</SubmitTextSign>
-      </SubmitSignButton>
+      
+      { !statusRace &&
+        <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
+          <SubmitTextSign>Iniciar</SubmitTextSign>
+        </SubmitSignButton>
+      }
+      { statusRace &&
+        <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
+          <SubmitTextSign>Encerrar</SubmitTextSign>
+        </SubmitSignButton>
+      }
       
     </Container>
     
