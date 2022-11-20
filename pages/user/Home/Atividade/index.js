@@ -15,7 +15,11 @@ export function Atividade() {
     latitudeDelta: 0.00014,
     longitudeDelta: 0.00014
   });
+  const [currentPosition, setCurrentPosition] = useState(null);
   const [statusRace, setStatusRace] = useState(false);
+  const [timeDurationString, setTimeDurationString] = useState("00:00:00");
+  const [timeDuration, setTimeDuration] = useState(0);
+  const [intervalTimer, setIntervalTimer] = useState(null);
 
   /**
    * Troca a posição do mapa de acordo com a movimentação do usuário
@@ -23,29 +27,52 @@ export function Atividade() {
    */
   
   function changeRegion(position) {
-    if(position != null) {
-      setCurrentRegion({
+    if(position != null && !statusRace) {
+      setCurrentRegion(() => {
+        return {
         latitude: position.latitude,
         longitude: position.longitude,
-        latitudeDelta: 0.00012,
-        longitudeDelta: 0.00012
-      });
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001
+      }});
     }
+  }
+  function secondsToHms(d) {
+    d = Number(d);
+    var h = Math.floor(d / 3600);
+    var m = Math.floor(d % 3600 / 60);
+    var s = Math.floor(d % 3600 % 60);
+
+    var hDisplay = h < 10 ? "0"+h:h ;
+    var mDisplay = m < 10 ? "0"+m:m;
+    var sDisplay = s < 10 ? "0"+s:s;
+    return hDisplay + ":" + mDisplay + ":" + sDisplay; 
+  }
+
+  async function counter() {
+    setTimeDuration((prevState) => {
+      setTimeDurationString(() => {
+        return secondsToHms(prevState+1);
+      });
+      return prevState+1;
+    })
+    
   }
   function startRace() {
     if(statusRace) {
+      clearInterval(intervalTimer);
       setStatusRace(false);
     }
     else {
       setStatusRace(true);
-
+      var oneSecInterval = setInterval(() => {
+        counter(); 
+      }, 1000);
+      setIntervalTimer(oneSecInterval);
     }
   }
 
   useEffect(() => {
-
-    
-
     Location.requestForegroundPermissionsAsync()
     .then(res => {
       if(!res.granted) {
@@ -58,39 +85,51 @@ export function Atividade() {
           changeRegion({
             latitude: res.coords.latitude,
             longitude: res.coords.longitude,
-            latitudeDelta: 0.00012,
-            longitudeDelta: 0.00012
           });
         })
         .catch(e => {
           console.log(e)
         });
-
-
       }
     })
     .catch(error => {
       console.log(error);
     })
+
+
+
+
+
   }, []);
 
   
   return (
     <>
     <Container bottom='0%' width='100%' height='60%'>
-      <MapView style={{  
+      {statusRace&&
+        <MapView style={{  
+            width: Dimensions.get('window').width,
+            height: Dimensions.get('window').width }}
+            showsUserLocation
+            followsUserLocation
+            loadingEnabled
+          />
+      
+      }
+      {!statusRace&&
+        <MapView style={{  
           width: Dimensions.get('window').width,
           height: Dimensions.get('window').width }}
-          region={currentRegion}
           showsUserLocation
-          followsUserLocation
+          region={currentRegion}
           loadingEnabled
         />
+      }
     </Container>
     <Container justify='space-between' bottom='0%' background width='100%' height='40%'>
       <MiniContainer>
 
-        <Title bottom='0%' size='40px'>00:00:00</Title>
+        <Title bottom='0%' size='40px'>{timeDurationString}</Title>
         <MiniMessage top='0%'>Duração</MiniMessage>
 
         <MiniContainer alignItems='flex-start' flexDirection='row'>
