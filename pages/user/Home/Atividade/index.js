@@ -28,7 +28,7 @@ export function Atividade() {
 
   /**
    * Troca a posição do mapa de acordo com a localização do usuário
-   * @param {latitude: Number, longitude: Number, latitudeDelta: Number, longitudeDelta: Number} position
+   * @param {{latitude: Number, longitude: Number, latitudeDelta: Number, longitudeDelta: Number}} position
    */
   
   function changeRegion(position) {
@@ -44,8 +44,28 @@ export function Atividade() {
   }
   /**
    * 
+   * @param {{{latitude, longitude},{latitude, longitude}}} arrayPosition - Array com a coordenada inicial e coordenada final
+   * @returns {Number} - Retorna a distância em KM
+   */
+  function calcDistance(arrayPosition) {
+    // Inicio dos calculos 1° parte
+    var p1 = Math.cos((90 - arrayPosition.latitude[0]) * (Math.PI / 180));
+    // Inicio dos calculos 2° parte
+    var p2 = Math.cos((90 - arrayPosition.latitude[1]) * (Math.PI / 180));
+    // Inicio dos calculos 3° parte
+    var p3 = Math.sin((90 - arrayPosition.latitude[0]) * (Math.PI / 180));
+    // Inicio dos calculos 4° parte
+    var p4 = Math.sin((90 - arrayPosition.latitude[1]) * (Math.PI / 180));
+    // Inicio dos calculos 5° parte
+    var p5 = Math.cos((arrayPosition.longitude[0] - arrayPosition.longitude[1]) * (Math.PI / 180));
+
+    return ((Math.acos((p1 * p2) + (p3 * p4 * p5)) * 6371) * 1.15);
+  }
+
+  /**
+   * 
    * @param {Number} d - Número em segundos do tempo
-   * @returns String - Retorna uma String no formato hh:mm:ss
+   * @returns {String} - Retorna uma String no formato hh:mm:ss
    */
   function secondsToHms(d) {
     d = Number(d);
