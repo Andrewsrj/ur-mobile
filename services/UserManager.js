@@ -1,4 +1,4 @@
-import { auth } from './firebaseConnection';
+import { auth } from './FirebaseService';
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 
 class UserManager {
