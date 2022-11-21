@@ -168,12 +168,12 @@ export function Atividade() {
           loadingEnabled
           ref={userMap}
         >
-          <Marker 
-          coordinate={currentRegion}
+          <Marker
+            coordinate={currentRegion}
           >
             <Image
               source={avatar.getAvatar(user.photoURL)}
-              style={{height: 20, width:20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+              style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
             />
           </Marker>
         </MapView>
