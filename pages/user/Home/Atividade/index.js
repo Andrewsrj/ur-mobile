@@ -15,15 +15,20 @@ export function Atividade() {
     latitudeDelta: 0.00014,
     longitudeDelta: 0.00014
   });
-  const [currentPosition, setCurrentPosition] = useState(null);
+  // Array com as posições percorridas pelo usuário
+  const [currentPosition, setCurrentPosition] = useState([]);
+  // Estado da corrida (Se foi iniciada ou não)
   const [statusRace, setStatusRace] = useState(false);
+  // Formato String da duração da corrida
   const [timeDurationString, setTimeDurationString] = useState("00:00:00");
+  // Formato Number da duração da corrida em segundos
   const [timeDuration, setTimeDuration] = useState(0);
+  // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
 
   /**
-   * Troca a posição do mapa de acordo com a movimentação do usuário
-   * @param {Object} position 
+   * Troca a posição do mapa de acordo com a localização do usuário
+   * @param {latitude: Number, longitude: Number, latitudeDelta: Number, longitudeDelta: Number} position
    */
   
   function changeRegion(position) {
@@ -37,6 +42,11 @@ export function Atividade() {
       }});
     }
   }
+  /**
+   * 
+   * @param {Number} d - Número em segundos do tempo
+   * @returns String - Retorna uma String no formato hh:mm:ss
+   */
   function secondsToHms(d) {
     d = Number(d);
     var h = Math.floor(d / 3600);
@@ -49,6 +59,10 @@ export function Atividade() {
     return hDisplay + ":" + mDisplay + ":" + sDisplay; 
   }
 
+  /**
+   * Inicia o contador. Aumentando 1 a cada chamada no timeDuration e timeDurationString
+   */
+
   async function counter() {
     setTimeDuration((prevState) => {
       setTimeDurationString(() => {
@@ -58,6 +72,12 @@ export function Atividade() {
     })
     
   }
+
+  /**
+   * Altera o estado da corrida. Encerra caso tenha uma em andamento, se não, inicia uma nova corrida
+   * (Obs: Falta enviar os dados para o Service ao finalizar uma corrida)
+   * Dados a ser enviados: currentPosition, timeDuration, timeDurationString
+   */
   function startRace() {
     if(statusRace) {
       clearInterval(intervalTimer);
@@ -73,6 +93,7 @@ export function Atividade() {
   }
 
   useEffect(() => {
+    // Verifica a permissão de localização do usuário
     Location.requestForegroundPermissionsAsync()
     .then(res => {
       if(!res.granted) {
