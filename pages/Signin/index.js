@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Logo from '../../assets/logo-login.png';
 import { DismissKeyboard } from '../../components/DismissKeyboard';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../../services/firebaseConnection';
+import { auth } from '../../services/FirebaseService';
 import userService from '../../services/UserManager';
 
 

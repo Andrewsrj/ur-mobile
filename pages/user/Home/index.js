@@ -1,13 +1,13 @@
 import { Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../../../services/firebaseConnection';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../../services/FirebaseService';
 import { Atividade } from './Atividade';
 import { Profile } from './Profile';
 import { Feed } from './Feed';
 
-const auth = getAuth(app);
+
 
 
 
@@ -47,7 +47,7 @@ function MyTabs() {
           ),
         }}
       />
-       <Tab.Screen
+      <Tab.Screen
         name="Ranking"
         component={Ranking}
         options={{
@@ -91,19 +91,19 @@ function MyTabs() {
   );
 }
 
-function Home({navigation}) {
+function Home({ navigation }) {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       // User is signed out
       navigation.reset({
         index: 0,
         routes: [
-            {name: "Signin"}
+          { name: "Signin" }
         ]
       })
     }
   });
-  return(
+  return (
     <MyTabs />
   )
 }

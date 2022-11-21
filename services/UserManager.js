@@ -72,7 +72,7 @@ class UserManager {
         const user = auth.currentUser;
         return user;
     }
-}
 
+}
 const userService = new UserManager();
 export default userService;
