@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
-import { Alert, Dimensions} from "react-native";
-import MapView from 'react-native-maps';
+import { useEffect, useRef, useState } from "react";
+import { Alert, Dimensions, Image } from "react-native";
+import MapView, { Marker } from 'react-native-maps';
+import avatar from "../../../../components/avatar";
+import userService from "../../../../services/UserManager";
 import * as Location from "expo-location";
 import { Container, MiniContainer, MiniMessage, SubmitSignButton, SubmitTextSign, Title } from "../../../../components/mainStyle";
 
@@ -8,13 +10,15 @@ import { Container, MiniContainer, MiniMessage, SubmitSignButton, SubmitTextSign
 
 
 export function Atividade() {
+  const user = userService.getUser();
   // Posição do Mapa (posição inicial: UERJ/ZO)
   const [currentRegion, setCurrentRegion] = useState({
     latitude: -22.900716623318992,
     longitude: -43.57767133491654,
-    latitudeDelta: 0.00014,
-    longitudeDelta: 0.00014
+    latitudeDelta: 0.94,
+    longitudeDelta: 0.914
   });
+  const userMap = useRef();
   // Array com as posições percorridas pelo usuário
   const [currentPosition, setCurrentPosition] = useState([]);
   // Estado da corrida (Se foi iniciada ou não)
@@ -30,16 +34,23 @@ export function Atividade() {
    * Troca a posição do mapa de acordo com a localização do usuário
    * @param {{latitude: Number, longitude: Number, latitudeDelta: Number, longitudeDelta: Number}} position
    */
-  
+
   function changeRegion(position) {
-    if(position != null && !statusRace) {
+    if (position != null) {
       setCurrentRegion(() => {
+        userMap.current.animateToRegion({
+          longitude: position.longitude,
+          latitude: position.latitude,
+          latitudeDelta: position.latitudeDelta,
+          longitudeDelta: position.longitudeDelta
+        }, 1000);
         return {
-        latitude: position.latitude,
-        longitude: position.longitude,
-        latitudeDelta: 0.001,
-        longitudeDelta: 0.001
-      }});
+          latitude: position.latitude,
+          longitude: position.longitude,
+          latitudeDelta: position.latitudeDelta,
+          longitudeDelta: position.longitudeDelta
+        }
+      });
     }
   }
   /**
@@ -73,10 +84,10 @@ export function Atividade() {
     var m = Math.floor(d % 3600 / 60);
     var s = Math.floor(d % 3600 % 60);
 
-    var hDisplay = h < 10 ? "0"+h:h ;
-    var mDisplay = m < 10 ? "0"+m:m;
-    var sDisplay = s < 10 ? "0"+s:s;
-    return hDisplay + ":" + mDisplay + ":" + sDisplay; 
+    var hDisplay = h < 10 ? "0" + h : h;
+    var mDisplay = m < 10 ? "0" + m : m;
+    var sDisplay = s < 10 ? "0" + s : s;
+    return hDisplay + ":" + mDisplay + ":" + sDisplay;
   }
 
   /**
@@ -86,11 +97,11 @@ export function Atividade() {
   async function counter() {
     setTimeDuration((prevState) => {
       setTimeDurationString(() => {
-        return secondsToHms(prevState+1);
+        return secondsToHms(prevState + 1);
       });
-      return prevState+1;
+      return prevState + 1;
     })
-    
+
   }
 
   /**
@@ -99,14 +110,14 @@ export function Atividade() {
    * Dados a ser enviados: currentPosition, timeDuration, timeDurationString
    */
   function startRace() {
-    if(statusRace) {
+    if (statusRace) {
       clearInterval(intervalTimer);
       setStatusRace(false);
     }
     else {
       setStatusRace(true);
       var oneSecInterval = setInterval(() => {
-        counter(); 
+        counter();
       }, 1000);
       setIntervalTimer(oneSecInterval);
     }
@@ -115,27 +126,29 @@ export function Atividade() {
   useEffect(() => {
     // Verifica a permissão de localização do usuário
     Location.requestForegroundPermissionsAsync()
-    .then(res => {
-      if(!res.granted) {
-        Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização para que o app funcione corretamente!");
-      }
-      else {
-        // Captura a localização atual do usuário
-        Location.getCurrentPositionAsync({})
-        .then(res => {
-          changeRegion({
-            latitude: res.coords.latitude,
-            longitude: res.coords.longitude,
-          });
-        })
-        .catch(e => {
-          console.log(e)
-        });
-      }
-    })
-    .catch(error => {
-      console.log(error);
-    })
+      .then(res => {
+        if (!res.granted) {
+          Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização para que o app funcione corretamente!");
+        }
+        else {
+          // Captura a localização atual do usuário
+          Location.getCurrentPositionAsync({})
+            .then(res => {
+              changeRegion({
+                latitude: res.coords.latitude,
+                longitude: res.coords.longitude,
+                latitudeDelta: 0.00914,
+                longitudeDelta: 0.0042
+              });
+            })
+            .catch(e => {
+              console.log(e)
+            });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+      })
 
 
 
@@ -143,64 +156,62 @@ export function Atividade() {
 
   }, []);
 
-  
+
   return (
     <>
-    <Container bottom='0%' width='100%' height='60%'>
-      {statusRace&&
-        <MapView style={{  
-            width: Dimensions.get('window').width,
-            height: Dimensions.get('window').width }}
-            showsUserLocation
-            followsUserLocation
-            loadingEnabled
-          />
-      
-      }
-      {!statusRace&&
-        <MapView style={{  
+      <Container bottom='0%' width='100%' height='60%'>
+        <MapView style={{
           width: Dimensions.get('window').width,
-          height: Dimensions.get('window').width }}
-          showsUserLocation
-          region={currentRegion}
+          height: Dimensions.get('window').width
+        }}
+          initialRegion={currentRegion}
           loadingEnabled
-        />
-      }
-    </Container>
-    <Container justify='space-between' bottom='0%' background width='100%' height='40%'>
-      <MiniContainer>
+          ref={userMap}
+        >
+          <Marker 
+          coordinate={currentRegion}
+          >
+            <Image
+              source={avatar.getAvatar(user.photoURL)}
+              style={{height: 20, width:20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+            />
+          </Marker>
+        </MapView>
+      </Container>
+      <Container justify='space-between' bottom='0%' background width='100%' height='40%'>
+        <MiniContainer>
 
-        <Title bottom='0%' size='40px'>{timeDurationString}</Title>
-        <MiniMessage top='0%'>Duração</MiniMessage>
+          <Title bottom='0%' size='40px'>{timeDurationString}</Title>
+          <MiniMessage top='0%'>Duração</MiniMessage>
 
-        <MiniContainer alignItems='flex-start' flexDirection='row'>
-          <MiniContainer width='50%' flexDirection='column'>
-            <Title bottom='0%'>0,00</Title>
-            <MiniMessage top='0%'>Distância</MiniMessage>
-          </MiniContainer>
+          <MiniContainer alignItems='flex-start' flexDirection='row'>
+            <MiniContainer width='50%' flexDirection='column'>
+              <Title bottom='0%'>0,00</Title>
+              <MiniMessage top='0%'>Distância</MiniMessage>
+            </MiniContainer>
 
-          <MiniContainer width='50%' flexDirection='column'>
-            <Title bottom='0%'>00:00</Title>
-            <MiniMessage top='0%'>Ritmo (min/km)</MiniMessage>
+            <MiniContainer width='50%' flexDirection='column'>
+              <Title bottom='0%'>00:00</Title>
+              <MiniMessage top='0%'>Ritmo (min/km)</MiniMessage>
+            </MiniContainer>
+
           </MiniContainer>
 
         </MiniContainer>
 
-      </MiniContainer>
-      
-      { !statusRace &&
-        <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
-          <SubmitTextSign>Iniciar</SubmitTextSign>
-        </SubmitSignButton>
-      }
-      { statusRace &&
-        <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
-          <SubmitTextSign>Encerrar</SubmitTextSign>
-        </SubmitSignButton>
-      }
-      
-    </Container>
-    
+        {!statusRace &&
+          <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
+            <SubmitTextSign>Iniciar</SubmitTextSign>
+          </SubmitSignButton>
+        }
+        {statusRace &&
+          <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
+            <SubmitTextSign>Encerrar</SubmitTextSign>
+          </SubmitSignButton>
+        }
+
+      </Container>
+
     </>
   );
 }
