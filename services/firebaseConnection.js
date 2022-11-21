@@ -3,13 +3,14 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import { getAuth, initializeAuth } from "firebase/auth";
 import { getReactNativePersistence } from 'firebase/auth/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_KEY } from "./secretKeys";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCS9y6-wlLCSI3ar2c0XXDznUDdJ4R3RQE",
+  apiKey: API_KEY,
   authDomain: "urunning2022.firebaseapp.com",
   projectId: "urunning2022",
   storageBucket: "urunning2022.appspot.com",
