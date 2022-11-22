@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Dimensions, Image } from "react-native";
-import MapView, { Marker } from 'react-native-maps';
+import { Alert, Dimensions, Image, Platform } from "react-native";
+import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import avatar from "../../../../components/avatar";
 import userService from "../../../../services/UserManager";
 import * as Location from "expo-location";
@@ -19,8 +19,17 @@ export function Atividade() {
     longitudeDelta: 0.914
   });
   const userMap = useRef();
+  const markerRef = useRef();
   // Array com as posições percorridas pelo usuário
-  const [currentPosition, setCurrentPosition] = useState([]);
+  const [currentPosition, setCurrentPosition] = useState({});
+  const [currentPositionAnimated, setCurrentPositionAnimated] = useState({
+    coordinates: new AnimatedRegion({
+      latitude: -22.900716623318992,
+      longitude: -43.57767133491654,
+      latitudeDelta: 0.94,
+      longitudeDelta: 0.914
+    })
+  });
   // Estado da corrida (Se foi iniciada ou não)
   const [statusRace, setStatusRace] = useState(false);
   // Formato String da duração da corrida
@@ -44,6 +53,7 @@ export function Atividade() {
           latitudeDelta: position.latitudeDelta,
           longitudeDelta: position.longitudeDelta
         }, 1000);
+        getLiveLocation()
         return {
           latitude: position.latitude,
           longitude: position.longitude,
@@ -52,6 +62,55 @@ export function Atividade() {
         }
       });
     }
+  }
+  const getCurrentPosition = async () => {
+    return Location.getCurrentPositionAsync({})
+      .then(res => {
+        return {
+          latitude: res.coords.latitude,
+          longitude: res.coords.longitude,
+          latitudeDelta: 0.00914,
+          longitudeDelta: 0.0042
+
+        }
+      })
+      .catch(e => {
+        console.log(e)
+      });
+
+  }
+  const getLiveLocation = async () => {
+    const position = await getCurrentPosition();
+    setCurrentPositionAnimated(() => {
+      setCurrentPosition(() => {
+        return {
+          latitude: position.latitude,
+          longitude: position.longitude,
+          latitudeDelta: position.latitudeDelta,
+          longitudeDelta: position.longitudeDelta
+        }
+      })
+      return {
+        coordinates: new AnimatedRegion({
+          latitude: position.latitude,
+          longitude: position.longitude,
+          latitudeDelta: position.latitudeDelta,
+          longitudeDelta: position.longitudeDelta
+        })
+      }
+    })
+    animateMarker(position.latitude, position.longitude)
+  }
+  const animateMarker = (latitude, longitude) => {
+    const newCoordinate = { latitude, longitude }
+
+    if (Platform.OS == "android") {
+      markerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
+    }
+    else {
+      currentPositionAnimated.coordinates.timing(newCoordinate).start();
+    }
+
   }
   /**
    * 
@@ -149,11 +208,10 @@ export function Atividade() {
       .catch(error => {
         console.log(error);
       })
-
-
-
-
-
+    const intervalTemp = setInterval(() => {
+      getLiveLocation()
+    }, 6000);
+    return () => clearInterval(intervalTemp)
   }, []);
 
 
@@ -168,14 +226,18 @@ export function Atividade() {
           loadingEnabled
           ref={userMap}
         >
-          <Marker
-            coordinate={currentRegion}
-          >
-            <Image
-              source={avatar.getAvatar(user.photoURL)}
-              style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
-            />
-          </Marker>
+          {Object.keys(currentPosition).length > 0 &&
+            <Marker.Animated
+              ref={markerRef}
+              coordinate={currentPositionAnimated.coordinates}
+            >
+              <Image
+                source={avatar.getAvatar(user.photoURL)}
+                style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+              />
+            </Marker.Animated>
+
+          }
         </MapView>
       </Container>
       <Container justify='space-between' bottom='0%' background width='100%' height='40%'>
