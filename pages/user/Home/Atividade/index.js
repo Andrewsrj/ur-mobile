@@ -23,16 +23,6 @@ export function Atividade() {
   });
   const userMap = useRef();
   const markerRef = useRef();
-  // Array com as posições percorridas pelo usuário
-  const [currentPosition, setCurrentPosition] = useState({});
-  const [currentPositionAnimated, setCurrentPositionAnimated] = useState({
-    coordinates: new AnimatedRegion({
-      latitude: -22.900716623318992,
-      longitude: -43.57767133491654,
-      latitudeDelta: LATITUDE_DELTA,
-      longitudeDelta: LONGITUDE_DELTA
-    })
-  });
   // Estado da corrida (Se foi iniciada ou não)
   const [statusRace, setStatusRace] = useState(false);
   // Formato String da duração da corrida
@@ -41,6 +31,22 @@ export function Atividade() {
   const [timeDuration, setTimeDuration] = useState(0);
   // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
+
+  const [state, setState] = useState({
+    currentPosition: {
+      latitude: 30.7046,
+      longitude: 77.1025,
+    },
+    coordinate: new AnimatedRegion({
+      latitude: 30.7046,
+      longitude: 77.1025,
+      latitudeDelta: LATITUDE_DELTA,
+      longitudeDelta: LONGITUDE_DELTA
+    }),
+  })
+
+  const { currentPosition, coordinate } = state
+  const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
   /**
    * Troca a posição do mapa de acordo com a localização do usuário
@@ -83,26 +89,17 @@ export function Atividade() {
 
   }
   const getLiveLocation = async () => {
-    const position = await getCurrentPosition();
-    setCurrentPositionAnimated(() => {
-      setCurrentPosition(() => {
-        return {
-          latitude: position.latitude,
-          longitude: position.longitude,
-          latitudeDelta: position.latitudeDelta,
-          longitudeDelta: position.longitudeDelta
-        }
+    const { latitude, longitude } = await getCurrentPosition();
+    animateMarker(latitude, longitude);
+    updateState({
+      currentPosition: { latitude, longitude },
+      coordinate: new AnimatedRegion({
+        latitude: latitude,
+        longitude: longitude,
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA
       })
-      return {
-        coordinates: new AnimatedRegion({
-          latitude: position.latitude,
-          longitude: position.longitude,
-          latitudeDelta: position.latitudeDelta,
-          longitudeDelta: position.longitudeDelta
-        })
-      }
     })
-    animateMarker(position.latitude, position.longitude)
   }
   const animateMarker = (latitude, longitude) => {
     const newCoordinate = { latitude, longitude }
@@ -111,7 +108,11 @@ export function Atividade() {
       markerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
     }
     else {
-      currentPositionAnimated.coordinates.timing(newCoordinate, {duration: 100}).start();
+      coordinate.timing(newCoordinate, {
+        latitudeDelta: LATITUDE_DELTA,
+        longitudeDelta: LONGITUDE_DELTA,
+        duration: 5000
+      }).start();
     }
 
   }
@@ -223,7 +224,7 @@ export function Atividade() {
       <Container bottom='0%' width='100%' height='60%'>
         <MapView style={{
           width: screen.width,
-          height: screen.height-0.4
+          height: screen.height - 0.4
         }}
           initialRegion={currentRegion}
           loadingEnabled
@@ -232,7 +233,7 @@ export function Atividade() {
           {Object.keys(currentPosition).length > 0 &&
             <Marker.Animated
               ref={markerRef}
-              coordinate={currentPositionAnimated.coordinates}
+              coordinate={coordinate}
             >
               <Image
                 source={avatar.getAvatar(user.photoURL)}
