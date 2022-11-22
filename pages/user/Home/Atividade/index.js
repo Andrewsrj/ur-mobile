@@ -7,7 +7,10 @@ import * as Location from "expo-location";
 import { Container, MiniContainer, MiniMessage, SubmitSignButton, SubmitTextSign, Title } from "../../../../components/mainStyle";
 
 
-
+const screen = Dimensions.get('window');
+const ASPECT_RATIO = screen.width / screen.height;
+const LATITUDE_DELTA = 0.004;
+const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 export function Atividade() {
   const user = userService.getUser();
@@ -15,8 +18,8 @@ export function Atividade() {
   const [currentRegion, setCurrentRegion] = useState({
     latitude: -22.900716623318992,
     longitude: -43.57767133491654,
-    latitudeDelta: 0.94,
-    longitudeDelta: 0.914
+    latitudeDelta: LATITUDE_DELTA,
+    longitudeDelta: LONGITUDE_DELTA
   });
   const userMap = useRef();
   const markerRef = useRef();
@@ -26,8 +29,8 @@ export function Atividade() {
     coordinates: new AnimatedRegion({
       latitude: -22.900716623318992,
       longitude: -43.57767133491654,
-      latitudeDelta: 0.94,
-      longitudeDelta: 0.914
+      latitudeDelta: LATITUDE_DELTA,
+      longitudeDelta: LONGITUDE_DELTA
     })
   });
   // Estado da corrida (Se foi iniciada ou não)
@@ -69,8 +72,8 @@ export function Atividade() {
         return {
           latitude: res.coords.latitude,
           longitude: res.coords.longitude,
-          latitudeDelta: 0.00914,
-          longitudeDelta: 0.0042
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA
 
         }
       })
@@ -108,7 +111,7 @@ export function Atividade() {
       markerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
     }
     else {
-      currentPositionAnimated.coordinates.timing(newCoordinate).start();
+      currentPositionAnimated.coordinates.timing(newCoordinate, {duration: 100}).start();
     }
 
   }
@@ -196,8 +199,8 @@ export function Atividade() {
               changeRegion({
                 latitude: res.coords.latitude,
                 longitude: res.coords.longitude,
-                latitudeDelta: 0.00914,
-                longitudeDelta: 0.0042
+                latitudeDelta: LATITUDE_DELTA,
+                longitudeDelta: LONGITUDE_DELTA
               });
             })
             .catch(e => {
@@ -219,8 +222,8 @@ export function Atividade() {
     <>
       <Container bottom='0%' width='100%' height='60%'>
         <MapView style={{
-          width: Dimensions.get('window').width,
-          height: Dimensions.get('window').width
+          width: screen.width,
+          height: screen.height-0.4
         }}
           initialRegion={currentRegion}
           loadingEnabled
