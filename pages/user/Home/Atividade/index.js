@@ -11,6 +11,7 @@ const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
 const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+const TIME_TO_TRACKING = 6000;
 
 export function Atividade() {
   const user = userService.getUser();
@@ -31,12 +32,10 @@ export function Atividade() {
   const [timeDuration, setTimeDuration] = useState(0);
   // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
+  const [intervalTimerTrack, setIntervalTimerTrack] = useState(null);
 
   const [state, setState] = useState({
-    currentPosition: {
-      latitude: 30.7046,
-      longitude: 77.1025,
-    },
+    currentPosition: new Array(),
     coordinate: new AnimatedRegion({
       latitude: 30.7046,
       longitude: 77.1025,
@@ -92,7 +91,6 @@ export function Atividade() {
     const { latitude, longitude } = await getCurrentPosition();
     animateMarker(latitude, longitude);
     updateState({
-      currentPosition: { latitude, longitude },
       coordinate: new AnimatedRegion({
         latitude: latitude,
         longitude: longitude,
@@ -100,6 +98,13 @@ export function Atividade() {
         longitudeDelta: LONGITUDE_DELTA
       })
     })
+  }
+  const pushCurrentPosition = async () => {
+    const { latitude, longitude } = await getCurrentPosition();
+    updateState({
+      currentPosition: new Array(...currentPosition, {latitude, longitude})
+    })
+    console.log(currentPosition)
   }
   const animateMarker = (latitude, longitude) => {
     const newCoordinate = { latitude, longitude }
@@ -175,14 +180,23 @@ export function Atividade() {
   function startRace() {
     if (statusRace) {
       clearInterval(intervalTimer);
-      setStatusRace(false);
+      clearInterval(intervalTimerTrack);
+      setStatusRace(() => {
+        return false
+      });
     }
     else {
-      setStatusRace(true);
+      setStatusRace(() => {
+        return true
+      });
       var oneSecInterval = setInterval(() => {
         counter();
       }, 1000);
+      var trackingInterval = setInterval(() => {
+        pushCurrentPosition();
+      }, TIME_TO_TRACKING);
       setIntervalTimer(oneSecInterval);
+      setIntervalTimerTrack(trackingInterval);
     }
   }
 
@@ -214,7 +228,7 @@ export function Atividade() {
       })
     const intervalTemp = setInterval(() => {
       getLiveLocation()
-    }, 6000);
+    }, TIME_TO_TRACKING);
     return () => clearInterval(intervalTemp)
   }, []);
 
@@ -230,7 +244,7 @@ export function Atividade() {
           loadingEnabled
           ref={userMap}
         >
-          {Object.keys(currentPosition).length > 0 &&
+          {Object.keys(coordinate).length > 0 &&
             <Marker.Animated
               ref={markerRef}
               coordinate={coordinate}
