@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Alert, Dimensions, Image, Platform } from "react-native";
-import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
+import MapView, { Marker, AnimatedRegion, Polyline } from 'react-native-maps';
 import avatar from "../../../../components/avatar";
 import userService from "../../../../services/UserManager";
 import * as Location from "expo-location";
@@ -11,7 +11,9 @@ const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
 const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-const TIME_TO_TRACKING = 6000;
+const TIME_TO_TRACKING = 1000;
+const ANIMATION_TIME_RATIO_ANDROID = 1.13;
+const ANIMATION_TIME_RATION_IOS = 0.83;
 
 export function Atividade() {
   const user = userService.getUser();
@@ -101,22 +103,26 @@ export function Atividade() {
   }
   const pushCurrentPosition = async () => {
     const { latitude, longitude } = await getCurrentPosition();
-    updateState({
-      currentPosition: new Array(...currentPosition, {latitude, longitude})
-    })
-    console.log(currentPosition)
+    let index = Object.keys(currentPosition).length > 0 ? Object.keys(currentPosition).length - 1 : 0;
+    if (currentPosition[index] !== { latitude, longitude }) {
+      updateState({
+        currentPosition: new Array(...currentPosition, { latitude, longitude })
+      })
+    }
   }
   const animateMarker = (latitude, longitude) => {
     const newCoordinate = { latitude, longitude }
 
     if (Platform.OS == "android") {
-      markerRef.current.animateMarkerToCoordinate(newCoordinate, 7000);
+      let animationTime = TIME_TO_TRACKING * ANIMATION_TIME_RATIO_ANDROID
+      markerRef.current.animateMarkerToCoordinate(newCoordinate, animationTime);
     }
     else {
+      let animationTime = TIME_TO_TRACKING * ANIMATION_TIME_RATION_IOS
       coordinate.timing(newCoordinate, {
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
-        duration: 5000
+        duration: animationTime
       }).start();
     }
 
@@ -255,6 +261,9 @@ export function Atividade() {
               />
             </Marker.Animated>
 
+          }
+          {Object.keys(currentPosition).length > 0 &&
+            <Polyline coordinates={currentPosition} strokeWidth={3} />
           }
         </MapView>
       </Container>
