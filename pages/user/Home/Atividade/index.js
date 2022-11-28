@@ -11,9 +11,10 @@ const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
 const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+// Tempo em milisegundos para pegar localização
 const TIME_TO_TRACKING = 1000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
-const ANIMATION_TIME_RATION_IOS = 0.83;
+const ANIMATION_TIME_RATIO_IOS = 0.83;
 
 export function Atividade() {
   const user = userService.getUser();
@@ -35,9 +36,9 @@ export function Atividade() {
   // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
   const [intervalTimerTrack, setIntervalTimerTrack] = useState(null);
-
+  // Vetor com posições para marcação de trajeto no mapa
+  const [currentPosition, setCurrentPosition] = useState(new Array());
   const [state, setState] = useState({
-    currentPosition: new Array(),
     coordinate: new AnimatedRegion({
       latitude: 30.7046,
       longitude: 77.1025,
@@ -46,7 +47,7 @@ export function Atividade() {
     }),
   })
 
-  const { currentPosition, coordinate } = state
+  const { coordinate } = state
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
   /**
@@ -102,13 +103,24 @@ export function Atividade() {
     })
   }
   const pushCurrentPosition = async () => {
-    const { latitude, longitude } = await getCurrentPosition();
-    let index = Object.keys(currentPosition).length > 0 ? Object.keys(currentPosition).length - 1 : 0;
-    if (currentPosition[index] !== { latitude, longitude }) {
-      updateState({
-        currentPosition: new Array(...currentPosition, { latitude, longitude })
-      })
-    }
+    let { latitude, longitude } = await getCurrentPosition();
+    setCurrentPosition((prevState) => {
+      let objPosition = new Array()
+      let maxLength = Object.keys(prevState).length
+      if (maxLength == 0) {
+        objPosition = new Array({ latitude, longitude })
+        console.log(maxLength)
+      } else {
+        let index = maxLength - 1
+        objPosition = new Array(...prevState)
+        if (prevState[index].latitude !== latitude || prevState[index].longitude !== longitude) {
+          objPosition = new Array(...prevState, { latitude, longitude })
+          console.log(objPosition)
+        }
+      }
+      return objPosition;
+    })
+
   }
   const animateMarker = (latitude, longitude) => {
     const newCoordinate = { latitude, longitude }
@@ -118,7 +130,7 @@ export function Atividade() {
       markerRef.current.animateMarkerToCoordinate(newCoordinate, animationTime);
     }
     else {
-      let animationTime = TIME_TO_TRACKING * ANIMATION_TIME_RATION_IOS
+      let animationTime = TIME_TO_TRACKING * ANIMATION_TIME_RATIO_IOS
       coordinate.timing(newCoordinate, {
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
@@ -175,7 +187,6 @@ export function Atividade() {
       });
       return prevState + 1;
     })
-
   }
 
   /**
@@ -250,18 +261,18 @@ export function Atividade() {
           loadingEnabled
           ref={userMap}
         >
-          {Object.keys(coordinate).length > 0 &&
-            <Marker.Animated
-              ref={markerRef}
-              coordinate={coordinate}
-            >
-              <Image
-                source={avatar.getAvatar(user.photoURL)}
-                style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
-              />
-            </Marker.Animated>
 
-          }
+          <Marker.Animated
+            ref={markerRef}
+            coordinate={coordinate}
+          >
+            <Image
+              source={avatar.getAvatar(user.photoURL)}
+              style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+            />
+          </Marker.Animated>
+
+
           {Object.keys(currentPosition).length > 0 &&
             <Polyline coordinates={currentPosition} strokeWidth={3} />
           }
