@@ -31,10 +31,14 @@ export function Atividade() {
   const [statusRace, setStatusRace] = useState(false);
   // Formato String da duração da corrida
   const [timeDurationString, setTimeDurationString] = useState("00:00:00");
+  // Formato String do Ritmo min/km
+  const [paceString, setPaceString] = useState("00:00")
   // Formato Number da duração da corrida em segundos
   const [timeDuration, setTimeDuration] = useState(0);
   // Formato Number da distância percorrida
   const [distance, setDistance] = useState(0.00);
+  // Apenas usadas para cálculos
+  let timeTemp = 0, distanceTemp = 0;
   // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
   const [intervalTimerTrack, setIntervalTimerTrack] = useState(null);
@@ -119,7 +123,8 @@ export function Atividade() {
           objPosition = new Array(...prevState, { latitude, longitude })
           setDistance((previousState) => {
             let coord0 = prevState[index]
-            return previousState + calcDistance([coord0, { latitude, longitude }])
+            distanceTemp = previousState + calcDistance([coord0, { latitude, longitude }])
+            return distanceTemp
           })
           //console.log(objPosition)
         }
@@ -166,6 +171,26 @@ export function Atividade() {
     return ((Math.acos((p1 * p2) + (p3 * p4 * p5)) * 6371) * 1.15);
   }
 
+  function calcPace() {
+    let minutes = 0, rounded = 0
+    if (distanceTemp > 0) {
+      // Passar segundos para minutos
+      let mTime = timeTemp / 60
+      // Divide o tempo em minutos pela distância
+      let res = mTime / distanceTemp;
+      // Transforma o resultado em String
+      let n = res.toString();
+      // Transforma os minutos em Inteiro
+      minutes = parseInt(n);
+      // Diminui os minutos para obter os segundos
+      let seconds = (res - minutes) * 60;
+      // Arredonda os segundos
+      rounded = Math.round(Math.round(seconds * 10) / 10);
+    }
+    //console.log(minutes, rounded, timeTemp)
+    setPaceString(()=> { return minutesSecondsToMs(minutes, rounded) })
+  }
+
   /**
    * 
    * @param {Number} d - Número em segundos do tempo
@@ -183,6 +208,14 @@ export function Atividade() {
     return hDisplay + ":" + mDisplay + ":" + sDisplay;
   }
 
+  function minutesSecondsToMs(min, sec) {
+    min = Number(min)
+    sec = Number(sec)
+    var mDisplay = min < 10 ? "0" + min : min;
+    var sDisplay = sec < 10 ? "0" + sec : sec;
+    return mDisplay + ":" + sDisplay;
+  }
+
   /**
    * Inicia o contador. Aumentando 1 a cada chamada no timeDuration e timeDurationString
    */
@@ -192,7 +225,8 @@ export function Atividade() {
       setTimeDurationString(() => {
         return secondsToHms(prevState + 1);
       });
-      return prevState + 1;
+      timeTemp = prevState + 1
+      return timeTemp;
     })
   }
 
@@ -218,9 +252,10 @@ export function Atividade() {
       }, 1000);
       var trackingInterval = setInterval(() => {
         pushCurrentPosition();
+        calcPace();
       }, TIME_TO_TRACKING);
       setIntervalTimer(oneSecInterval);
-      setIntervalTimerTrack(trackingInterval);
+      setIntervalTimerTrack(() => { return trackingInterval });
     }
   }
 
@@ -298,7 +333,7 @@ export function Atividade() {
             </MiniContainer>
 
             <MiniContainer width='50%' flexDirection='column'>
-              <Title bottom='0%'>00:00</Title>
+              <Title bottom='0%'>{paceString}</Title>
               <MiniMessage top='0%'>Ritmo (min/km)</MiniMessage>
             </MiniContainer>
 
