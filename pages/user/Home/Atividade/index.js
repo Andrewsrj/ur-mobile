@@ -33,6 +33,8 @@ export function Atividade() {
   const [timeDurationString, setTimeDurationString] = useState("00:00:00");
   // Formato Number da duração da corrida em segundos
   const [timeDuration, setTimeDuration] = useState(0);
+  // Formato Number da distância percorrida
+  const [distance, setDistance] = useState(0.00);
   // Referência para o Timer
   const [intervalTimer, setIntervalTimer] = useState(null);
   const [intervalTimerTrack, setIntervalTimerTrack] = useState(null);
@@ -109,13 +111,17 @@ export function Atividade() {
       let maxLength = Object.keys(prevState).length
       if (maxLength == 0) {
         objPosition = new Array({ latitude, longitude })
-        console.log(maxLength)
+        //console.log(maxLength)
       } else {
         let index = maxLength - 1
         objPosition = new Array(...prevState)
         if (prevState[index].latitude !== latitude || prevState[index].longitude !== longitude) {
           objPosition = new Array(...prevState, { latitude, longitude })
-          console.log(objPosition)
+          setDistance((previousState) => {
+            let coord0 = prevState[index]
+            return previousState + calcDistance([coord0, { latitude, longitude }])
+          })
+          //console.log(objPosition)
         }
       }
       return objPosition;
@@ -145,16 +151,17 @@ export function Atividade() {
    * @returns {Number} - Retorna a distância em KM
    */
   function calcDistance(arrayPosition) {
+    //console.log(arrayPosition[0].latitude, arrayPosition[1].latitude)
     // Inicio dos calculos 1° parte
-    var p1 = Math.cos((90 - arrayPosition.latitude[0]) * (Math.PI / 180));
+    var p1 = Math.cos((90 - arrayPosition[0].latitude) * (Math.PI / 180));
     // Inicio dos calculos 2° parte
-    var p2 = Math.cos((90 - arrayPosition.latitude[1]) * (Math.PI / 180));
+    var p2 = Math.cos((90 - arrayPosition[1].latitude) * (Math.PI / 180));
     // Inicio dos calculos 3° parte
-    var p3 = Math.sin((90 - arrayPosition.latitude[0]) * (Math.PI / 180));
+    var p3 = Math.sin((90 - arrayPosition[0].latitude) * (Math.PI / 180));
     // Inicio dos calculos 4° parte
-    var p4 = Math.sin((90 - arrayPosition.latitude[1]) * (Math.PI / 180));
+    var p4 = Math.sin((90 - arrayPosition[1].latitude) * (Math.PI / 180));
     // Inicio dos calculos 5° parte
-    var p5 = Math.cos((arrayPosition.longitude[0] - arrayPosition.longitude[1]) * (Math.PI / 180));
+    var p5 = Math.cos((arrayPosition[0].longitude - arrayPosition[1].longitude) * (Math.PI / 180));
 
     return ((Math.acos((p1 * p2) + (p3 * p4 * p5)) * 6371) * 1.15);
   }
@@ -286,7 +293,7 @@ export function Atividade() {
 
           <MiniContainer alignItems='flex-start' flexDirection='row'>
             <MiniContainer width='50%' flexDirection='column'>
-              <Title bottom='0%'>0,00</Title>
+              <Title bottom='0%'>{distance.toFixed(2)}</Title>
               <MiniMessage top='0%'>Distância</MiniMessage>
             </MiniContainer>
 
