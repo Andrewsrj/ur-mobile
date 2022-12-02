@@ -4,7 +4,7 @@ import userService from "../../../../services/UserManager";
 import { Avatar, BioText, ButtonText, CollegeName, Container, DescriptionRow, DescriptionText, DisplayName, ImageRow, Rect, Rect2, RectItems, SubDescriptionText, TouchableButton } from "./styles";
 
 
-export function Profile() {
+export function Profile({navigation}) {
   const user = userService.getUser();
   const [state, setState] = useState({
     bio: "carregando dados...",
@@ -38,6 +38,10 @@ export function Profile() {
       })
   }
 
+  const editProfile = () => {
+    navigation.navigate("ProfileEditor");
+  }
+
   return (
     <Container>
       <Rect>
@@ -66,7 +70,7 @@ export function Profile() {
         <BioText>"{bio}"</BioText>
       </Rect>
       <Rect2>
-        <TouchableButton>
+        <TouchableButton onPress={editProfile}>
           <ButtonText>Editar</ButtonText>
         </TouchableButton>
         {!user.verified &&
