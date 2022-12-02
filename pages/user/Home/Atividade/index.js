@@ -328,7 +328,7 @@ export function Atividade() {
 
           <MiniContainer alignItems='flex-start' flexDirection='row'>
             <MiniContainer width='50%' flexDirection='column'>
-              <Title bottom='0%'>{distance.toFixed(2)}</Title>
+              <Title bottom='0%'>{distance.toFixed(2)}Km</Title>
               <MiniMessage top='0%'>Distância</MiniMessage>
             </MiniContainer>
 
