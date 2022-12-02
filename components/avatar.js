@@ -1,34 +1,53 @@
-import boy1 from '../assets/avatar/boy_1.png'
-import girl1 from '../assets/avatar/girl_1.png'
-import hacker from '../assets/avatar/hacker.png'
-import man1 from '../assets/avatar/man_1.png'
-import man2 from '../assets/avatar/man_2.png'
-import user from '../assets/avatar/user.png'
-import woman1 from '../assets/avatar/woman_1.png'
-import woman2 from '../assets/avatar/woman_2.png'
 
 class Avatar {
-    getAvatar(name) {
-        switch(name) {
-            case 'boy_1':
-                return boy1;
-            case 'girl_1':
-                return girl1;
-            case 'hacker':
-                return hacker;
-            case 'man_1':
-                return man1;
-            case 'man_2':
-                return man2;
-            case 'user':
-                return user;
-            case 'woman_1':
-                return woman1;
-            case 'woman_2':
-                return woman2;
-            default:
-                return user;
+    constructor(avatars) {
+        this.avatars = avatars ? avatars : {
+            boy1: require('../assets/avatar/boy_1.png'),
+            girl1: require('../assets/avatar/girl_1.png'),
+            hacker: require('../assets/avatar/hacker.png'),
+            man1: require('../assets/avatar/man_1.png'),
+            man2: require('../assets/avatar/man_2.png'),
+            user: require('../assets/avatar/user.png'),
+            woman1: require('../assets/avatar/woman_1.png'),
+            woman2: require('../assets/avatar/woman_2.png'),
         }
+    }
+    getAvatar(name) {
+        if (this.avatars[name]) {
+            return this.avatars[name]
+        }
+        else {
+            return this.avatars["user"]
+        }
+    }
+
+    getAvatarsLength() {
+        return Object.keys(this.avatars).length
+    }
+
+    getAvatarByKey(key) {
+        key = Number(key)
+        var keys = Object.keys(this.avatars);
+        return this.avatars[keys[key]] ? this.avatars[keys[key]] : this.avatars["user"]
+    }
+    getAvatarNameByKey(key) {
+        key = Number(key)
+        var keys = Object.keys(this.avatars);
+        for (i in keys) {
+            if (key == Number(i)) {
+                return String(keys[i])
+            }
+        }
+    }
+    getKeyAvatarByName(name) {
+        var key = 0;
+        var keys = Object.keys(this.avatars);
+        for (key; key < keys.length; key++) {
+            if (this.avatars[name] == this.avatars[keys[key]]) {
+                return key
+            }
+        }
+        return 5;
     }
 }
 
