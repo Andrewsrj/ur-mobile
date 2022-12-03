@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Dimensions, Image, Platform } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Image, Platform } from "react-native";
 import MapView, { Marker, AnimatedRegion, Polyline } from 'react-native-maps';
 import avatar from "../../../../../components/avatar";
 import userService from "../../../../../services/UserManager";
@@ -347,8 +347,8 @@ export function Running({ route, navigation }) {
                 </MiniContainer>
 
                 {!statusRace &&
-                    <SubmitSignButton onPress={startRace} width='50%' bottom='1%'>
-                        <SubmitTextSign>Iniciar</SubmitTextSign>
+                    <SubmitSignButton width='50%' bottom='1%'>
+                        <ActivityIndicator size="small" color="#ffffff" />
                     </SubmitSignButton>
                 }
                 {statusRace &&
