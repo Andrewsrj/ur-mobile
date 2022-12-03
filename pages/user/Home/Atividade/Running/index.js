@@ -52,37 +52,14 @@ export function Running({ route, navigation }) {
     const { coordinate } = state
     const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
-    /**
-     * Troca a posição do mapa de acordo com a localização do usuário
-     * @param {{latitude: Number, longitude: Number, latitudeDelta: Number, longitudeDelta: Number}} position
-     */
-
-    function changeRegion(position) {
-        if (position != null) {
-            setCurrentRegion(() => {
-                userMap.current.animateToRegion({
-                    longitude: position.longitude,
-                    latitude: position.latitude,
-                    latitudeDelta: position.latitudeDelta,
-                    longitudeDelta: position.longitudeDelta
-                }, 1000);
-                return {
-                    latitude: position.latitude,
-                    longitude: position.longitude,
-                    latitudeDelta: position.latitudeDelta,
-                    longitudeDelta: position.longitudeDelta
-                }
-            });
-        }
-    }
     const getCurrentPosition = async () => {
         return Location.getCurrentPositionAsync({
             enableHighAccuracy: true,
             accuracy: Location.Accuracy.High,
         })
             .then(res => {
-                if (res.coords.accuracy < 22) {
-                    return getCurrentPosition()
+                if (res.coords.accuracy < 15) {
+                    return false
                 }
                 else {
                     return {
@@ -115,28 +92,32 @@ export function Running({ route, navigation }) {
     }
     const pushCurrentPosition = async () => {
         let { latitude, longitude } = await getCurrentPosition();
-        setCurrentPosition((prevState) => {
-            let objPosition = new Array()
-            let maxLength = Object.keys(prevState).length
-            if (maxLength == 0) {
-                objPosition = new Array({ latitude, longitude })
-                //console.log(maxLength)
-            } else {
-                let index = maxLength - 1
-                objPosition = new Array(...prevState)
-                if (prevState[index].latitude !== latitude || prevState[index].longitude !== longitude) {
-                    objPosition = new Array(...prevState, { latitude, longitude })
-                    setDistance((previousState) => {
-                        let coord0 = prevState[index]
-                        distanceTemp = previousState + calcDistance([coord0, { latitude, longitude }])
-                        return distanceTemp
-                    })
-                    //console.log(objPosition)
+        if (latitude && longitude) {
+            setCurrentPosition((prevState) => {
+                let objPosition = new Array()
+                let maxLength = Object.keys(prevState).length
+                if (maxLength == 0) {
+                    objPosition = new Array({ latitude, longitude })
+                    //console.log(maxLength)
+                } else {
+                    let index = maxLength - 1
+                    objPosition = new Array(...prevState)
+                    if (prevState[index].latitude !== latitude || prevState[index].longitude !== longitude) {
+                        objPosition = new Array(...prevState, { latitude, longitude })
+                        setDistance((previousState) => {
+                            let coord0 = prevState[index]
+                            distanceTemp = previousState + calcDistance([coord0, { latitude, longitude }])
+                            return distanceTemp
+                        })
+                        //console.log(objPosition)
+                    }
                 }
-            }
-            return objPosition;
-        })
-
+                return objPosition;
+            })
+        }
+        else {
+            console.log("Localização imprecisa!")
+        }
     }
     const animateMarker = (latitude, longitude) => {
         const newCoordinate = { latitude, longitude }
