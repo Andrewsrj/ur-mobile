@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Alert, Dimensions, Image, Platform } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Image, Platform } from "react-native";
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import avatar from "../../../../components/avatar";
 import userService from "../../../../services/UserManager";
@@ -30,15 +30,11 @@ export function Atividade({ navigation }) {
   // Estado da corrida (Se foi iniciada ou não)
   const [statusRace, setStatusRace] = useState(false);
   const [state, setState] = useState({
-    coordinate: new AnimatedRegion({
-      latitude: 30.7046,
-      longitude: 77.1025,
-      latitudeDelta: LATITUDE_DELTA,
-      longitudeDelta: LONGITUDE_DELTA
-    }),
+    coordinate: new AnimatedRegion(),
+    coordUpdated: false,
   })
 
-  const { coordinate } = state
+  const { coordinate, coordUpdated } = state
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
   /**
@@ -55,7 +51,6 @@ export function Atividade({ navigation }) {
           latitudeDelta: position.latitudeDelta,
           longitudeDelta: position.longitudeDelta
         }, 1000);
-        getLiveLocation()
         return {
           latitude: position.latitude,
           longitude: position.longitude,
@@ -90,7 +85,8 @@ export function Atividade({ navigation }) {
         longitude: longitude,
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA
-      })
+      }),
+      coordUpdated: true,
     })
   }
 
@@ -116,7 +112,7 @@ export function Atividade({ navigation }) {
     navigation.reset({
       index: 0,
       routes: [
-        { name: "Running", params: {currentRegion: currentRegion} }
+        { name: "Running", params: { currentRegion: currentRegion } }
       ]
     })
   }
@@ -130,26 +126,26 @@ export function Atividade({ navigation }) {
         }
         else {
           Location.enableNetworkProviderAsync()
-          .then(() => {
-            // Captura a localização atual do usuário
-            Location.getCurrentPositionAsync({})
-              .then(res => {
-                changeRegion({
-                  latitude: res.coords.latitude,
-                  longitude: res.coords.longitude,
-                  latitudeDelta: LATITUDE_DELTA,
-                  longitudeDelta: LONGITUDE_DELTA
+            .then(() => {
+              // Captura a localização atual do usuário
+              Location.getCurrentPositionAsync({})
+                .then(res => {
+                  changeRegion({
+                    latitude: res.coords.latitude,
+                    longitude: res.coords.longitude,
+                    latitudeDelta: LATITUDE_DELTA,
+                    longitudeDelta: LONGITUDE_DELTA
+                  });
+                })
+                .catch(e => {
+                  console.log(e)
                 });
-              })
-              .catch(e => {
-                console.log(e)
-              });
-            
-          })
-          .catch(error => {
-            Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização de alta precisão para que o app funcione corretamente!");
-            console.log(error)
-          })
+
+            })
+            .catch(error => {
+              Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização de alta precisão para que o app funcione corretamente!");
+              console.log(error)
+            })
         }
       })
       .catch(error => {
@@ -173,23 +169,30 @@ export function Atividade({ navigation }) {
           loadingEnabled
           ref={userMap}
         >
+          {coordUpdated &&
+            <Marker.Animated
+              ref={markerRef}
+              coordinate={coordinate}
+            >
+              <Image
+                source={avatar.getAvatar(user.photoURL)}
+                style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+              />
+            </Marker.Animated>
 
-          <Marker.Animated
-            ref={markerRef}
-            coordinate={coordinate}
-          >
-            <Image
-              source={avatar.getAvatar(user.photoURL)}
-              style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
-            />
-          </Marker.Animated>
+          }
         </MapView>
       </Container>
       <Container justify='space-between' bottom='0%' background width='100%' height='15%'>
 
-        {!statusRace &&
+        {coordUpdated &&
           <SubmitSignButton onPress={goToRun} width='50%' bottom='1%'>
             <SubmitTextSign>Iniciar</SubmitTextSign>
+          </SubmitSignButton>
+        }
+        {!coordUpdated &&
+          <SubmitSignButton width='50%' bottom='1%'>
+            <ActivityIndicator size="small" color="#ffffff" />
           </SubmitSignButton>
         }
 
