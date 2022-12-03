@@ -81,12 +81,17 @@ export function Running({ route, navigation }) {
             accuracy: Location.Accuracy.High,
         })
             .then(res => {
-                return {
-                    latitude: res.coords.latitude,
-                    longitude: res.coords.longitude,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA
+                if (res.coords.accuracy < 22) {
+                    return getCurrentPosition()
+                }
+                else {
+                    return {
+                        latitude: res.coords.latitude,
+                        longitude: res.coords.longitude,
+                        latitudeDelta: LATITUDE_DELTA,
+                        longitudeDelta: LONGITUDE_DELTA
 
+                    }
                 }
             })
             .catch(e => {
@@ -143,8 +148,8 @@ export function Running({ route, navigation }) {
         else {
             let animationTime = TIME_TO_TRACKING * ANIMATION_TIME_RATIO_IOS
             coordinate.timing(newCoordinate, {
-        duration: animationTime
-      }).start();
+                duration: animationTime
+            }).start();
         }
 
     }
@@ -262,34 +267,9 @@ export function Running({ route, navigation }) {
     }
 
     useEffect(() => {
-        // Verifica a permissão de localização do usuário
-        Location.requestForegroundPermissionsAsync()
-            .then(res => {
-                if (!res.granted) {
-                    Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização para que o app funcione corretamente!");
-                }
-                else {
-                    // Captura a localização atual do usuário
-                    Location.getCurrentPositionAsync({})
-                        .then(res => {
-                            changeRegion({
-                                latitude: res.coords.latitude,
-                                longitude: res.coords.longitude,
-                                latitudeDelta: LATITUDE_DELTA,
-                                longitudeDelta: LONGITUDE_DELTA
-                            });
-                            if (ready) {
-                                startRace()
-                            }
-                        })
-                        .catch(e => {
-                            console.log(e)
-                        });
-                }
-            })
-            .catch(error => {
-                console.log(error);
-            })
+        if (ready) {
+            startRace()
+        }
         const intervalTemp = setInterval(() => {
             getLiveLocation()
         }, TIME_TO_TRACKING);
