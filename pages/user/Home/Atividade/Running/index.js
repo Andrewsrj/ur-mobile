@@ -12,7 +12,7 @@ const ASPECT_RATIO = screen.width / screen.height;
 const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 // Tempo em milisegundos para pegar localização
-const TIME_TO_TRACKING = 5000;
+const TIME_TO_TRACKING = 3000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
 const ANIMATION_TIME_RATIO_IOS = 0.83;
 
@@ -257,6 +257,7 @@ export function Running({ route, navigation }) {
             var oneSecInterval = setInterval(() => {
                 counter();
             }, 1000);
+            pushCurrentPosition()
             var trackingInterval = setInterval(() => {
                 pushCurrentPosition();
                 calcPace();
