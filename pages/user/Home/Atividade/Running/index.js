@@ -11,6 +11,7 @@ const screen = Dimensions.get('window');
 const ASPECT_RATIO = screen.width / screen.height;
 const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
+const MIN_ACCURACY = 7;
 // Tempo em milisegundos para pegar localização
 const TIME_TO_TRACKING = 3000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
@@ -59,7 +60,7 @@ export function Running({ route, navigation }) {
             accuracy: Location.Accuracy.High,
         })
             .then(res => {
-                if (res.coords.accuracy < 15) {
+                if (res.coords.accuracy < MIN_ACCURACY) {
                     return false
                 }
                 else {
