@@ -42,7 +42,7 @@ export function Feed() {
                             </Header>
                             <DescriptionBox>
                                 <Description>
-                                    <DescriptionText>{item.distance}</DescriptionText>
+                                    <DescriptionText>{item.distance} Km</DescriptionText>
                                     <DescriptionMiniText>Distância</DescriptionMiniText>
                                 </Description>
                                 <Description>
