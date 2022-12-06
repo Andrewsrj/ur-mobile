@@ -13,7 +13,7 @@ const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const MIN_ACCURACY = 7;
 // Tempo em milisegundos para pegar localização
-const TIME_TO_TRACKING = 3000;
+const TIME_TO_TRACKING = 2000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
 const ANIMATION_TIME_RATIO_IOS = 0.83;
 
@@ -142,19 +142,21 @@ export function Running({ route, navigation }) {
      * @returns {Number} - Retorna a distância em KM
      */
     function calcDistance(arrayPosition) {
-        //console.log(arrayPosition[0].latitude, arrayPosition[1].latitude)
-        // Inicio dos calculos 1° parte
-        var p1 = Math.cos((90 - arrayPosition[0].latitude) * (Math.PI / 180));
-        // Inicio dos calculos 2° parte
-        var p2 = Math.cos((90 - arrayPosition[1].latitude) * (Math.PI / 180));
-        // Inicio dos calculos 3° parte
-        var p3 = Math.sin((90 - arrayPosition[0].latitude) * (Math.PI / 180));
-        // Inicio dos calculos 4° parte
-        var p4 = Math.sin((90 - arrayPosition[1].latitude) * (Math.PI / 180));
-        // Inicio dos calculos 5° parte
-        var p5 = Math.cos((arrayPosition[0].longitude - arrayPosition[1].longitude) * (Math.PI / 180));
+        var R = 6371; // Radius of the earth in km
+        var dLat = deg2rad(arrayPosition[1].latitude - arrayPosition[0].latitude);  // deg2rad below
+        var dLon = deg2rad(arrayPosition[1].longitude - arrayPosition[0].longitude);
+        var a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(arrayPosition[0].latitude)) * Math.cos(deg2rad(arrayPosition[1].latitude)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+            ;
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c; // Distance in km
+        return d;
+    }
 
-        return ((Math.acos((p1 * p2) + (p3 * p4 * p5)) * 6371) * 1.15);
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180)
     }
 
     function calcPace() {
@@ -284,7 +286,7 @@ export function Running({ route, navigation }) {
                     >
                         <Image
                             source={avatar.getAvatar(user.photoURL)}
-                            style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+                            style={{ height: 20, width: 20, borderWidth: 2, borderColor: "#fff", borderRadius: 30 }}
                         />
                     </Marker.Animated>
 
