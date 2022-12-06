@@ -38,6 +38,7 @@ export function Running({ route, navigation }) {
     // Referência para o Timer
     const [intervalTimer, setIntervalTimer] = useState(null);
     const [intervalTimerTrack, setIntervalTimerTrack] = useState(null);
+    const [intervalTracker, setIntervalTracker] = useState(null);
     // Vetor com posições para marcação de trajeto no mapa
     const [currentPosition, setCurrentPosition] = useState(new Array());
     const [state, setState] = useState({
@@ -238,6 +239,7 @@ export function Running({ route, navigation }) {
             var oneSecInterval = setInterval(() => {
                 counter();
             }, 1000);
+            startTracking()
             pushCurrentPosition()
             var trackingInterval = setInterval(() => {
                 pushCurrentPosition();
@@ -247,15 +249,19 @@ export function Running({ route, navigation }) {
             setIntervalTimerTrack(() => { return trackingInterval });
         }
     }
+    function startTracking() {
+        clearInterval(intervalTracker);
+        const intervalTemp = setInterval(() => {
+            getLiveLocation()
+        }, TIME_TO_TRACKING);
+        setIntervalTracker(() => { return intervalTemp })
+        return true;
+    }
 
     useEffect(() => {
         if (ready) {
             startRace()
         }
-        const intervalTemp = setInterval(() => {
-            getLiveLocation()
-        }, TIME_TO_TRACKING);
-        return () => clearInterval(intervalTemp)
     }, []);
 
 
