@@ -13,7 +13,7 @@ class FeedManager {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "tokenId": tokenId })
+                body: JSON.stringify({ "tokenId": tokenId, "page": 0, "limit": 2 })
             }
         )
 
