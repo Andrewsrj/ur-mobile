@@ -1,10 +1,11 @@
-import { FlatList, Text, View } from "react-native";
+import { Dimensions, FlatList, Text, View } from "react-native";
 import { Avatar, Description, DescriptionBox, DescriptionMiniText, DescriptionText, Header, MapImage, MiniHeader, Name, Post, PostImage, ReactBar, ReactBox, Time } from "./styles";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import avatar from "../../../../components/avatar";
 import feed from "../../../../services/FeedManager";
 import { useEffect, useState } from "react";
 import userService from "../../../../services/UserManager";
+import MapView, { Polyline } from "react-native-maps";
 // Temp
 const mapImage = require('../../../../assets/defaultmap.jpg');
 // --
@@ -13,6 +14,10 @@ const mapImage = require('../../../../assets/defaultmap.jpg');
 export function Feed() {
     const [feedContent, setFeedContent] = useState([]);
     const user = userService.getUser();
+    const screen = Dimensions.get('window');
+    const ASPECT_RATIO = screen.width / screen.height;
+    const LATITUDE_DELTA = 0.00004;
+    const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
     useEffect(() => {
         async function loadFeed() {
             const tokenId = await user.getIdToken(true)
@@ -31,13 +36,12 @@ export function Feed() {
                     data={feedContent}
                     keyExtractor={post => String(post.id)}
                     renderItem={({ item }) => (
-
                         <Post>
                             <Header>
                                 <Avatar verified={item.author.verified} source={avatar.getAvatar(item.author.image)} />
                                 <MiniHeader>
                                     <Name>{item.author.name}</Name>
-                                    <Time>{item.date}</Time>
+                                    <Time>{(new Date(item.date)).getHours()}:{(new Date(item.date)).getMinutes()}:{(new Date(item.date)).getSeconds()} - {(new Date(item.date)).getDate()}/{(new Date(item.date)).getMonth() + 1}/{(new Date(item.date)).getFullYear()}</Time>
                                 </MiniHeader>
                             </Header>
                             <DescriptionBox>
@@ -55,7 +59,29 @@ export function Feed() {
                                 </Description>
                             </DescriptionBox>
                             <PostImage>
-                                <MapImage source={mapImage} />
+                                <MapView style={{
+                                    width: '95%',
+                                    height: 250,
+                                    borderRadius: 25
+                                }}
+                                    showsPointsOfInterest={false}
+                                    showsBuildings={false}
+                                    zoomEnabled={false}
+                                    rotateEnabled={false}
+                                    scrollEnabled={false}
+                                    pitchEnabled={false}
+                                    toolbarEnabled={false}
+                                    cacheEnabled={true}
+                                    initialRegion={
+                                        {
+                                            latitude: item.mapCoordinate[0].latitude,
+                                            longitude: item.mapCoordinate[0].longitude,
+                                            latitudeDelta: LATITUDE_DELTA,
+                                            longitudeDelta: LONGITUDE_DELTA
+                                        }
+                                    } >
+                                    <Polyline coordinates={item.mapCoordinate} strokeWidth={3} />
+                                </MapView>
                             </PostImage>
                             <DescriptionBox>
                                 <ReactBar>
@@ -75,7 +101,7 @@ export function Feed() {
 
             }
             {Object.keys(feedContent).length < 1 &&
-                <Text>No Connection</Text>
+                <Text>Waiting Connection</Text>
             }
         </View>
     );
