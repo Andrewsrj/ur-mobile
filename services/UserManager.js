@@ -94,11 +94,11 @@ class UserManager {
 
     async setDataUser(data) {
         const user = this.getUser()
-        const defaultData = this.getDataUser()
+        const defaultData = await this.getDataUser()
         const db = getDatabase();
         const statusPrm = true
         const errorPrm = null
-        set(ref(db, 'users/' + user.uid), {
+        set(ref(db, `users/${user.uid}`), {
             bio: data.bio ? data.bio : defaultData.bio,
             university: data.university ? data.university : defaultData.university,
         });
