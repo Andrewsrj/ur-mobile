@@ -1,15 +1,25 @@
 import { DismissKeyboard } from "../../../../../components/DismissKeyboard";
-import { KeyboardView } from "../../../../../components/mainStyle";
-import { Container } from "../styles";
+import { Container, Input, KeyboardView, SubmitSignButton, SubmitTextSign } from "../../../../../components/mainStyle";
+
 import { Arrow, ArrowLeft, ArrowRight, ImageBox, ProfileImage } from "./styles";
 import avatar from "../../../../../components/avatar"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import userService from "../../../../../services/UserManager";
+import { Alert } from "react-native";
 
 export function ProfileEditor() {
     const user = userService.getUser();
     const [userAvatar, setUserAvatar] = useState(avatar.getAvatar(user.photoURL))
     const [keyAvatar, setKeyAvatar] = useState(avatar.getKeyAvatarByName(user.photoURL))
+    const [userName, setUserName] = useState(user.displayName)
+    const [state, setState] = useState({
+        bio: null,
+        university: null,
+    })
+    const { bio, university } = state
+
+    const updateState = (data) => setState((state) => ({ ...state, ...data }));
+
     const nextImage = (key) => {
         key++
         if (key >= avatar.getAvatarsLength()) {
@@ -32,8 +42,34 @@ export function ProfileEditor() {
             setUserAvatar(avatar.getAvatarByKey(key))
         }
     }
-
-
+    const saveData = () => {
+        const data = {
+            photoURL: avatar.getAvatarNameByKey(keyAvatar),
+            displayName: userName,
+            bio: bio,
+            university: university,
+        }
+        userService.setDataUser(data)
+            .then(() => {
+                Alert.alert("Sucesso", "Dados salvos com sucesso!")
+            })
+            .catch((error) => {
+                console.log(error)
+                //Alert.alert("Erro", error)
+            })
+    }
+    useEffect(() => {
+        userService.getDataUser()
+            .then((dataUser) => {
+                updateState({
+                    bio: dataUser.bio,
+                    university: dataUser.university,
+                })
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }, []);
 
     return (
         <DismissKeyboard>
@@ -52,7 +88,24 @@ export function ProfileEditor() {
 
                         </Arrow>
                     </ImageBox>
-
+                    <Input
+                        placeholder="Seu nome"
+                        value={userName}
+                        onChangeText={(value) => { setUserName(value) }}
+                    />
+                    <Input
+                        placeholder="Conte um pouco mais sobre você..."
+                        value={bio}
+                        onChangeText={(value) => { updateState({ bio: value }) }}
+                    />
+                    <Input
+                        placeholder="Onde você estuda/estudou?"
+                        value={university}
+                        onChangeText={(value) => { updateState({ university: value }) }}
+                    />
+                    <SubmitSignButton onPress={() => saveData()}>
+                        <SubmitTextSign>Salvar</SubmitTextSign>
+                    </SubmitSignButton>
                 </Container>
             </KeyboardView>
         </DismissKeyboard>
