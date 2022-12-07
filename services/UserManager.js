@@ -76,14 +76,18 @@ class UserManager {
 
     async getDataUser() {
         const dbRef = ref(getDatabase());
-        const userId = this.getUser().uid;
-        return get(child(dbRef, `users/${userId}`)).then((snapshot) => {
+        const user = this.getUser();
+        return get(child(dbRef, `users/${user.uid}`)).then((snapshot) => {
             if (snapshot.exists()) {
-                return Promise.resolve(snapshot.val());
+                let data = snapshot.toJSON()
+                data = { bio: data.bio, university: data.university, displayName: user.displayName, photoURL: user.photoURL }
+                return Promise.resolve(data);
             } else {
                 const data = {
                     bio: "Minha biografia",
-                    university: "Minha universidade"
+                    university: "Minha universidade",
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
                 }
                 return Promise.resolve(data);
             }
@@ -96,27 +100,20 @@ class UserManager {
         const user = this.getUser()
         const defaultData = await this.getDataUser()
         const db = getDatabase();
-        const statusPrm = true
-        const errorPrm = null
-        set(ref(db, `users/${user.uid}`), {
-            bio: data.bio ? data.bio : defaultData.bio,
-            university: data.university ? data.university : defaultData.university,
-        });
-        updateProfile(auth.currentUser, {
+
+        return updateProfile(auth.currentUser, {
             displayName: data.displayName ? data.displayName : user.displayName,
             photoURL: data.photoURL ? data.photoURL : user.photoURL
-        }).then()
-            .catch((error) => {
-                statusPrm = false;
-                errorPrm = error;
-                console.log(error)
+        }).then(() => {
+            set(ref(db, `users/${user.uid}`), {
+                bio: data.bio ? data.bio : defaultData.bio,
+                university: data.university ? data.university : defaultData.university,
             });
-        if (statusPrm) {
             return Promise.resolve("success")
-        }
-        else {
-            return Promise.reject(errorPrm)
-        }
+        })
+            .catch((error) => {
+                return Promise.reject(error)
+            });
     }
 
 }

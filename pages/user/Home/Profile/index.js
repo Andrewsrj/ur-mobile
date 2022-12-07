@@ -4,13 +4,15 @@ import userService from "../../../../services/UserManager";
 import { Avatar, BioText, ButtonText, CollegeName, Container, DescriptionRow, DescriptionText, DisplayName, ImageRow, Rect, Rect2, RectItems, SubDescriptionText, TouchableButton } from "./styles";
 
 
-export function Profile({navigation}) {
+export function Profile({ navigation }) {
   const user = userService.getUser();
   const [state, setState] = useState({
     bio: "carregando dados...",
     university: "carregando dados...",
+    avatarPic: null,
+    displayName: "...",
   })
-  const { bio, university } = state
+  const { avatarPic, bio, displayName, university } = state
 
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
@@ -20,6 +22,8 @@ export function Profile({navigation}) {
         updateState({
           bio: dataUser.bio,
           university: dataUser.university,
+          avatarPic: avatar.getAvatar(dataUser.photoURL),
+          displayName: dataUser.displayName,
         })
       })
       .catch((error) => {
@@ -48,10 +52,10 @@ export function Profile({navigation}) {
         <RectItems>
           <ImageRow>
             <Avatar
-              source={avatar.getAvatar(user.photoURL)}
+              source={avatarPic}
               resizeMode="contain"
             />
-            <DisplayName>{user.displayName}</DisplayName>
+            <DisplayName>{displayName}</DisplayName>
             <CollegeName>{university}</CollegeName>
           </ImageRow>
           <DescriptionRow>
