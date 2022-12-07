@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import userService from "../../../../../services/UserManager";
 import { Alert } from "react-native";
 
-export function ProfileEditor() {
+export function ProfileEditor({navigation}) {
     const user = userService.getUser();
     const [userAvatar, setUserAvatar] = useState(avatar.getAvatar(user.photoURL))
     const [keyAvatar, setKeyAvatar] = useState(avatar.getKeyAvatarByName(user.photoURL))
@@ -52,6 +52,12 @@ export function ProfileEditor() {
         userService.setDataUser(data)
             .then(() => {
                 Alert.alert("Sucesso", "Dados salvos com sucesso!")
+                navigation.reset({
+                    index: 0,
+                    routes: [
+                        {name: "Home", params: {initialRoute: "Profile"}}
+                    ]
+                })
             })
             .catch((error) => {
                 console.log(error)

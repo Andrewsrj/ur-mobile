@@ -29,14 +29,36 @@ function Historic() {
 
 const Tab = createBottomTabNavigator();
 
-function MyTabs() {
+
+function Home({ navigation, route }) {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // User is signed out
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: "Signin" }
+        ]
+      })
+    }
+  });
+  let rotaInicial = "Atividade"
+  if (route) {
+    if (route.params) {
+      if (route.params.initialRoute) {
+        rotaInicial = route.params.initialRoute
+      }
+    }
+  }
   return (
+
     <Tab.Navigator
-      initialRouteName="Atividade"
+      initialRouteName={rotaInicial}
       screenOptions={{
         tabBarActiveTintColor: 'blue',
       }}
     >
+
       <Tab.Screen
         name="Feed"
         component={Feed}
@@ -89,22 +111,5 @@ function MyTabs() {
       />
     </Tab.Navigator>
   );
-}
-
-function Home({ navigation }) {
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // User is signed out
-      navigation.reset({
-        index: 0,
-        routes: [
-          { name: "Signin" }
-        ]
-      })
-    }
-  });
-  return (
-    <MyTabs />
-  )
 }
 export default Home;
