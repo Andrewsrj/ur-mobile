@@ -60,34 +60,55 @@ export function Atividade({ navigation }) {
       });
     }
   }
-  const getCurrentPosition = async () => {
-    return Location.getCurrentPositionAsync({})
+  const verifyPermission = async () => {
+    return Location.requestForegroundPermissionsAsync()
       .then(res => {
-        return {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude,
-          latitudeDelta: LATITUDE_DELTA,
-          longitudeDelta: LONGITUDE_DELTA
-
+        if (!res.granted) {
+          Alert.alert("Permita a localização!", "Para que o app funcione, você precisa permitir a localização e ativar o GPS");
+          return false
+        }
+        else {
+          return true
         }
       })
-      .catch(e => {
-        console.log(e)
-      });
+  }
+  const getCurrentPosition = async () => {
+    if (verifyPermission) {
+      return Location.getCurrentPositionAsync({})
+        .then(res => {
+          return {
+            latitude: res.coords.latitude,
+            longitude: res.coords.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA
+
+          }
+        })
+        .catch(e => {
+          console.log(e)
+        });
+
+    }
+    else {
+      return false
+    }
 
   }
   const getLiveLocation = async () => {
     const { latitude, longitude } = await getCurrentPosition();
-    animateMarker(latitude, longitude);
-    updateState({
-      coordinate: new AnimatedRegion({
-        latitude: latitude,
-        longitude: longitude,
-        latitudeDelta: LATITUDE_DELTA,
-        longitudeDelta: LONGITUDE_DELTA
-      }),
-      coordUpdated: true,
-    })
+    if (latitude && longitude) {
+      animateMarker(latitude, longitude);
+      updateState({
+        coordinate: new AnimatedRegion({
+          latitude: latitude,
+          longitude: longitude,
+          latitudeDelta: LATITUDE_DELTA,
+          longitudeDelta: LONGITUDE_DELTA
+        }),
+        coordUpdated: true,
+      })
+
+    }
   }
 
   const animateMarker = (latitude, longitude) => {
@@ -119,38 +140,21 @@ export function Atividade({ navigation }) {
 
   useEffect(() => {
     // Verifica a permissão de localização do usuário
-    Location.requestForegroundPermissionsAsync()
-      .then(res => {
-        if (!res.granted) {
-          Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização para que o app funcione corretamente!");
-        }
-        else {
-          Location.enableNetworkProviderAsync()
-            .then(() => {
-              // Captura a localização atual do usuário
-              Location.getCurrentPositionAsync({})
-                .then(res => {
-                  changeRegion({
-                    latitude: res.coords.latitude,
-                    longitude: res.coords.longitude,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA
-                  });
-                })
-                .catch(e => {
-                  console.log(e)
-                });
-
-            })
-            .catch(error => {
-              Alert.alert("Permita a localização!", "Você precisa permitir compartilhar sua localização de alta precisão para que o app funcione corretamente!");
-              console.log(error)
-            })
-        }
-      })
-      .catch(error => {
-        console.log(error);
-      })
+    if (verifyPermission()) {
+      // Captura a localização atual do usuário
+      Location.getCurrentPositionAsync({})
+        .then(res => {
+          changeRegion({
+            latitude: res.coords.latitude,
+            longitude: res.coords.longitude,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA
+          });
+        })
+        .catch(e => {
+          console.log(e)
+        });
+    }
     const intervalTemp = setInterval(() => {
       getLiveLocation()
     }, TIME_TO_TRACKING);
@@ -162,8 +166,8 @@ export function Atividade({ navigation }) {
     <>
       <Container bottom='0%' width='100%' height='85%'>
         <MapView style={{
-          width: screen.width,
-          height: screen.height - 0.4
+          width: "100%",
+          height: "100%"
         }}
           initialRegion={currentRegion}
           loadingEnabled
@@ -183,10 +187,10 @@ export function Atividade({ navigation }) {
           }
         </MapView>
       </Container>
-      <Container justify='space-between' bottom='0%' background width='100%' height='15%'>
+      <Container justify='space-between' bottom='-3%' background width='100%' height='15%'>
 
         {coordUpdated &&
-          <SubmitSignButton onPress={goToRun} width='50%' bottom='1%'>
+          <SubmitSignButton onPress={goToRun} width='50%' bottom='0%'>
             <SubmitTextSign>Iniciar</SubmitTextSign>
           </SubmitSignButton>
         }

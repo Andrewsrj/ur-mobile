@@ -13,7 +13,7 @@ const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const MIN_ACCURACY = 7;
 // Tempo em milisegundos para pegar localização
-const TIME_TO_TRACKING = 2000;
+const TIME_TO_TRACKING = 1000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
 const ANIMATION_TIME_RATIO_IOS = 0.83;
 
@@ -54,16 +54,24 @@ export function Running({ route, navigation }) {
     const { coordinate } = state
     const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
-    const getCurrentPosition = async () => {
-        return Location.getCurrentPositionAsync({
-            enableHighAccuracy: true,
-            accuracy: Location.Accuracy.High,
-        })
+    const verifyPermission = async () => {
+        return Location.requestForegroundPermissionsAsync()
             .then(res => {
-                if (res.coords.accuracy < MIN_ACCURACY) {
+                if (!res.granted) {
+                    Alert.alert("Permita a localização!", "Para que o app funcione, você precisa permitir a localização e ativar o GPS");
                     return false
                 }
                 else {
+                    return true
+                }
+            })
+    }
+
+    const getCurrentPosition = async () => {
+        if (verifyPermission) {
+            return Location.getCurrentPositionAsync()
+                .then(res => {
+
                     return {
                         latitude: res.coords.latitude,
                         longitude: res.coords.longitude,
@@ -71,11 +79,16 @@ export function Running({ route, navigation }) {
                         longitudeDelta: LONGITUDE_DELTA
 
                     }
-                }
-            })
-            .catch(e => {
-                console.log(e)
-            });
+
+                })
+                .catch(e => {
+                    console.log(e)
+                });
+
+        }
+        else {
+            return false
+        }
 
     }
     const getLiveLocation = async () => {
@@ -272,8 +285,8 @@ export function Running({ route, navigation }) {
         <>
             <Container bottom='0%' width='100%' height='60%'>
                 <MapView style={{
-                    width: screen.width,
-                    height: screen.height - 0.4
+                    width: "100%",
+                    height: "100%"
                 }}
                     initialRegion={currentRegion}
                     loadingEnabled
@@ -286,13 +299,13 @@ export function Running({ route, navigation }) {
                     >
                         <Image
                             source={avatar.getAvatar(user.photoURL)}
-                            style={{ height: 20, width: 20, borderWidth: 2, borderColor: "#fff", borderRadius: 30 }}
+                            style={{ height: 30, width: 30, borderWidth: 2, borderColor: "#fff", borderRadius: 30 }}
                         />
                     </Marker.Animated>
 
 
                     {Object.keys(currentPosition).length > 0 &&
-                        <Polyline coordinates={currentPosition} strokeWidth={3} />
+                        <Polyline coordinates={currentPosition} strokeWidth={5} />
                     }
                 </MapView>
             </Container>
