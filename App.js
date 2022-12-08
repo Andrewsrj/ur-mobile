@@ -7,6 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ProfileEditor } from './pages/user/Home/Profile/Edit';
 import { Running } from './pages/user/Home/Atividade/Running';
+import { Profile } from './pages/user/Home/Profile'
 
 
 const Stack = createNativeStackNavigator();
@@ -23,6 +24,7 @@ export default function App() {
           <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
           <Stack.Screen name="Running" component={Running} options={{ headerShown: false}} />
           <Stack.Screen name="ProfileEditor" component={ProfileEditor} options={{ title: 'Editar Perfil'}} />
+          <Stack.Screen name="ViewProfile" component={Profile} options={{ title: 'Visualizar Perfil'}} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" />

@@ -1,5 +1,5 @@
 import { Dimensions, FlatList, Text, View } from "react-native";
-import { Avatar, Description, DescriptionBox, DescriptionMiniText, DescriptionText, Header, MapImage, MiniHeader, Name, Post, PostImage, ReactBar, ReactBox, Time } from "./styles";
+import { Avatar, Clickable, Description, DescriptionBox, DescriptionMiniText, DescriptionText, Header, MapImage, MiniHeader, Name, Post, PostImage, ReactBar, ReactBox, Time } from "./styles";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import avatar from "../../../../components/avatar";
 import feed from "../../../../services/FeedManager";
@@ -11,7 +11,7 @@ const mapImage = require('../../../../assets/defaultmap.jpg');
 // --
 
 
-export function Feed() {
+export function Feed({ navigation }) {
     const [feedContent, setFeedContent] = useState([]);
     const user = userService.getUser();
     const screen = Dimensions.get('window');
@@ -28,6 +28,9 @@ export function Feed() {
 
         loadFeed();
     }, []);
+    const viewProfile = (uid) => {
+        navigation.navigate("ViewProfile", { userId: uid });
+    }
 
     return (
         <View>
@@ -37,13 +40,16 @@ export function Feed() {
                     keyExtractor={post => String(post.id)}
                     renderItem={({ item }) => (
                         <Post>
-                            <Header>
-                                <Avatar verified={item.author.verified} source={avatar.getAvatar(item.author.image)} />
-                                <MiniHeader>
-                                    <Name>{item.author.name}</Name>
-                                    <Time>{(new Date(item.date)).getHours()}:{(new Date(item.date)).getMinutes()}:{(new Date(item.date)).getSeconds()} - {(new Date(item.date)).getDate()}/{(new Date(item.date)).getMonth() + 1}/{(new Date(item.date)).getFullYear()}</Time>
-                                </MiniHeader>
-                            </Header>
+                            <Clickable onPress={() => viewProfile(item.author.id)}>
+                                <Header>
+                                    <Avatar verified={item.author.verified} source={avatar.getAvatar(item.author.image)} />
+                                    <MiniHeader>
+                                        <Name>{item.author.name}</Name>
+                                        <Time>{(new Date(item.date)).getHours()}:{(new Date(item.date)).getMinutes()}:{(new Date(item.date)).getSeconds()} - {(new Date(item.date)).getDate()}/{(new Date(item.date)).getMonth() + 1}/{(new Date(item.date)).getFullYear()}</Time>
+                                    </MiniHeader>
+                                </Header>
+
+                            </Clickable>
                             <DescriptionBox>
                                 <Description>
                                     <DescriptionText>{item.distance} Km</DescriptionText>

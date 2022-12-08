@@ -1,6 +1,8 @@
 import { auth } from './FirebaseService';
 import { createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { getDatabase, ref, set, child, get } from "firebase/database";
+// API Address
+import { URL_API } from "./secretKeys";
 
 class UserManager {
 
@@ -72,28 +74,56 @@ class UserManager {
         // Get Auth User Data
         const user = auth.currentUser;
         return user;
+
     }
 
-    async getDataUser() {
+    async getDataUser(userId) {
+        //console.log(userId)
         const dbRef = ref(getDatabase());
         const user = this.getUser();
-        return get(child(dbRef, `users/${user.uid}`)).then((snapshot) => {
-            if (snapshot.exists()) {
-                let data = snapshot.toJSON()
-                data = { bio: data.bio, university: data.university, displayName: user.displayName, photoURL: user.photoURL }
-                return Promise.resolve(data);
-            } else {
-                const data = {
-                    bio: "Minha biografia",
-                    university: "Minha universidade",
-                    displayName: user.displayName,
-                    photoURL: user.photoURL,
+        const tokenId = await user.getIdToken(true)
+        //console.log(tokenId)
+        if (!userId) {
+            return get(child(dbRef, `users/${user.uid}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    let data = snapshot.toJSON()
+                    data = { db: data, fb: user }
+                    return Promise.resolve(data);
+                } else {
+                    const data = {
+                        db: {
+                            bio: "Minha biografia",
+                            university: "Minha universidade",
+
+                        },
+                        fb: user,
+                    }
+                    return Promise.resolve(data);
                 }
-                return Promise.resolve(data);
+            }).catch((error) => {
+                return Promise.reject(error);
+            });
+        }
+        else {
+            const response = await fetch(
+                URL_API + '/users',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ "tokenId": tokenId, "uid": userId })
+                }
+            )
+    
+            const data = await response.json();
+            if(data) {
+                return Promise.resolve(data)
             }
-        }).catch((error) => {
-            return Promise.reject(error);
-        });
+            else {
+                return Promise.reject("Erro de conexão")
+            }
+        }
     }
 
     async setDataUser(data) {

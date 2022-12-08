@@ -4,26 +4,34 @@ import userService from "../../../../services/UserManager";
 import { Avatar, BioText, ButtonText, CollegeName, Container, DescriptionRow, DescriptionText, DisplayName, ImageRow, Rect, Rect2, RectItems, SubDescriptionText, TouchableButton } from "./styles";
 
 
-export function Profile({ navigation }) {
+export function Profile({ navigation, route }) {
   const user = userService.getUser();
   const [state, setState] = useState({
     bio: "carregando dados...",
     university: "carregando dados...",
     avatarPic: null,
     displayName: "...",
+    selfUser: false,
   })
-  const { avatarPic, bio, displayName, university } = state
+  const { avatarPic, bio, displayName, university, selfUser } = state
 
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
 
   useEffect(() => {
-    userService.getDataUser()
+    let uid
+    if(route) {
+      if(route.params) {
+        uid = route.params.userId?route.params.userId:false
+      }
+    }
+    userService.getDataUser(uid)
       .then((dataUser) => {
         updateState({
-          bio: dataUser.bio,
-          university: dataUser.university,
-          avatarPic: avatar.getAvatar(dataUser.photoURL),
-          displayName: dataUser.displayName,
+          bio: dataUser.db.bio,
+          university: dataUser.db.university,
+          avatarPic: avatar.getAvatar(dataUser.fb.photoURL),
+          displayName: dataUser.fb.displayName,
+          selfUser: dataUser.fb.uid==user.uid?true:false
         })
       })
       .catch((error) => {
@@ -73,22 +81,24 @@ export function Profile({ navigation }) {
         </RectItems>
         <BioText>"{bio}"</BioText>
       </Rect>
-      <Rect2>
-        <TouchableButton onPress={editProfile}>
-          <ButtonText>Editar</ButtonText>
-        </TouchableButton>
-        {!user.verified &&
-          <TouchableButton>
-            <ButtonText>Verificar</ButtonText>
+      {selfUser &&
+        <Rect2>
+          <TouchableButton onPress={editProfile}>
+            <ButtonText>Editar</ButtonText>
           </TouchableButton>
-        }
-        <TouchableButton>
-          <ButtonText>Conquistas</ButtonText>
-        </TouchableButton>
-        <TouchableButton onPress={handleSignout}>
-          <ButtonText>Sair</ButtonText>
-        </TouchableButton>
-      </Rect2>
+          {!user.verified &&
+            <TouchableButton>
+              <ButtonText>Verificar</ButtonText>
+            </TouchableButton>
+          }
+          <TouchableButton>
+            <ButtonText>Conquistas</ButtonText>
+          </TouchableButton>
+          <TouchableButton onPress={handleSignout}>
+            <ButtonText>Sair</ButtonText>
+          </TouchableButton>
+        </Rect2>
+      }
     </Container>
   );
 }

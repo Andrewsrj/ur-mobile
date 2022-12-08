@@ -1,5 +1,5 @@
 // API Address
-const urlApi = "http://192.168.0.133:3000";
+import { URL_API } from "./secretKeys";
 
 class FeedManager {
 
@@ -7,7 +7,7 @@ class FeedManager {
     async loadFeed(tokenId) {
         // Falta passar Token de autenticação
         const response = await fetch(
-            urlApi + '/posts',
+            URL_API + '/posts',
             {
                 method: 'POST',
                 headers: {

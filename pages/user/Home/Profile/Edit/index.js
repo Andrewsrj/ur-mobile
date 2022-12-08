@@ -68,8 +68,8 @@ export function ProfileEditor({navigation}) {
         userService.getDataUser()
             .then((dataUser) => {
                 updateState({
-                    bio: dataUser.bio,
-                    university: dataUser.university,
+                    bio: dataUser.db.bio,
+                    university: dataUser.db.university,
                 })
             })
             .catch((error) => {
