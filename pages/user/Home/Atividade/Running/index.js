@@ -13,7 +13,7 @@ const LATITUDE_DELTA = 0.004;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const MIN_ACCURACY = 7;
 // Tempo em milisegundos para pegar localização
-const TIME_TO_TRACKING = 1000;
+const TIME_TO_TRACKING = 2000;
 const ANIMATION_TIME_RATIO_ANDROID = 1.13;
 const ANIMATION_TIME_RATIO_IOS = 0.83;
 
@@ -69,20 +69,26 @@ export function Running({ route, navigation }) {
 
     const getCurrentPosition = async () => {
         if (verifyPermission) {
-            return Location.getCurrentPositionAsync()
+            return Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 20 })
                 .then(res => {
-
-                    return {
-                        latitude: res.coords.latitude,
-                        longitude: res.coords.longitude,
-                        latitudeDelta: LATITUDE_DELTA,
-                        longitudeDelta: LONGITUDE_DELTA
-
+                    if(res.coords.latitude&&res.coords.longitude) {
+                        //console.log(res.coords.latitude, res.coords.longitude)
+                        return {
+                            latitude: res.coords.latitude,
+                            longitude: res.coords.longitude,
+                            latitudeDelta: LATITUDE_DELTA,
+                            longitudeDelta: LONGITUDE_DELTA
+    
+                        }
+                    }
+                    else {
+                        return false
                     }
 
                 })
                 .catch(e => {
                     console.log(e)
+                    return false
                 });
 
         }
@@ -91,8 +97,7 @@ export function Running({ route, navigation }) {
         }
 
     }
-    const getLiveLocation = async () => {
-        const { latitude, longitude } = await getCurrentPosition();
+    const setLiveLocation = (latitude, longitude) => {
         if (latitude && longitude) {
             animateMarker(latitude, longitude);
             updateState({
@@ -108,20 +113,27 @@ export function Running({ route, navigation }) {
     const pushCurrentPosition = async () => {
         let { latitude, longitude } = await getCurrentPosition();
         if (latitude && longitude) {
+            setLiveLocation(latitude, longitude)
             setCurrentPosition((prevState) => {
                 let objPosition = new Array()
                 let maxLength = Object.keys(prevState).length
+                console.log("Tamanho Array:", maxLength)
+                console.log(prevState)
                 if (maxLength == 0) {
                     objPosition = new Array({ latitude, longitude })
-                    //console.log(maxLength)
+                    
                 } else {
                     let index = maxLength - 1
                     objPosition = new Array(...prevState)
-                    if (prevState[index].latitude !== latitude || prevState[index].longitude !== longitude) {
+                    if (objPosition[index].latitude != latitude || objPosition[index].longitude != longitude) {
                         objPosition = new Array(...prevState, { latitude, longitude })
                         setDistance((previousState) => {
-                            let coord0 = prevState[index]
-                            distanceTemp = previousState + calcDistance([coord0, { latitude, longitude }])
+                            let coord0 = objPosition[index]
+                            let coord1 = objPosition[index+1]
+                            distanceTemp = previousState + calcDistance([coord0, coord1])
+                            //console.log("Ant:", coord0, " Atual:", latitude, longitude)
+                            console.log("Distancia percorrida:",calcDistance([coord0, { latitude, longitude }]))
+                            console.log("Distancia atual:", distanceTemp)
                             return distanceTemp
                         })
                         //console.log(objPosition)
@@ -256,7 +268,6 @@ export function Running({ route, navigation }) {
                 counter();
             }, 1000);
             startTracking()
-            pushCurrentPosition()
             var trackingInterval = setInterval(() => {
                 pushCurrentPosition();
                 calcPace();
@@ -267,10 +278,10 @@ export function Running({ route, navigation }) {
     }
     function startTracking() {
         clearInterval(intervalTracker);
-        const intervalTemp = setInterval(() => {
+        /*const intervalTemp = setInterval(() => {
             getLiveLocation()
         }, TIME_TO_TRACKING);
-        setIntervalTracker(() => { return intervalTemp })
+        setIntervalTracker(() => { return intervalTemp }) */
         return true;
     }
 
