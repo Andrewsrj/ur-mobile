@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Image, Platform } from "react-native";
+import { ActivityIndicator, Alert, Animated, Dimensions, Image, Platform } from "react-native";
 import MapView, { Marker, AnimatedRegion } from 'react-native-maps';
 import avatar from "../../../../components/avatar";
 import userService from "../../../../services/UserManager";
@@ -33,6 +33,7 @@ export function Atividade({ navigation }) {
     coordinate: new AnimatedRegion(),
     coordUpdated: false,
   })
+  const AnimatedImage = Animated.createAnimatedComponent(Image)
 
   const { coordinate, coordUpdated } = state
   const updateState = (data) => setState((state) => ({ ...state, ...data }));
@@ -74,7 +75,7 @@ export function Atividade({ navigation }) {
   }
   const getCurrentPosition = async () => {
     if (verifyPermission) {
-      return Location.getCurrentPositionAsync({})
+      return Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.BestForNavigation, distanceInterval: 20 })
         .then(res => {
           return {
             latitude: res.coords.latitude,
@@ -123,7 +124,7 @@ export function Atividade({ navigation }) {
       coordinate.timing(newCoordinate, {
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA,
-        duration: animationTime
+        duration: 7000
       }).start();
     }
 
@@ -178,9 +179,10 @@ export function Atividade({ navigation }) {
               ref={markerRef}
               coordinate={coordinate}
             >
-              <Image
+              <AnimatedImage
                 source={avatar.getAvatar(user.photoURL)}
                 style={{ height: 20, width: 20, borderWidth: 1, borderColor: "#000000", borderRadius: 30 }}
+                resizeMode="contain"
               />
             </Marker.Animated>
 

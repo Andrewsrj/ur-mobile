@@ -242,6 +242,14 @@ export function Running({ route, navigation }) {
             return timeTemp;
         })
     }
+    function goToRecord() {
+        navigation.reset({
+          index: 0,
+          routes: [
+            { name: "Record", params: { timeDuration: timeDurationString, distance: distance, pace: paceString, coordMap: currentPosition } }
+          ]
+        })
+      }
 
     /**
      * Altera o estado da corrida. Encerra caso tenha uma em andamento, se não, inicia uma nova corrida
@@ -259,6 +267,7 @@ export function Running({ route, navigation }) {
                 return false
             });
             // Ir para relatório da corrida!
+            goToRecord()
         }
         else {
             setStatusRace(() => {
